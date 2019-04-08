@@ -1,13 +1,13 @@
 # Shitbot
 ## A simple bot for shitposting
 
-For now check out [`src/_responders.ts`](https://github.tumblr.net/Tumblr/shitbot/blob/master/src/_responders.ts) for where to make more responders.
+For now check out [`src/_responders.ts`](./blob/master/src/_responders.ts) for where to make more responders.
 
 ## Matcher
 Responders have a matcher, that filters what messages it'll respond to. They are a builder
 pattern that you can add more filters.
 
-` `all` - matches all messages, must be the seed for all matchers
+- `all` - matches all messages, must be the seed for all matchers
 - `startsWith('string')` - only matches messages that start with the supplied string
 - `contains('string')` - matches any message that has the supplied string anywhre in it
 - `matches(/prefix: (.+)/i)` - matches to a regex, any capture groups are then passed along
@@ -24,7 +24,7 @@ You can chain these to combine matchers like this:
 all.startsWith('foo').isIM
 ```
 
-Matchers are defined in [`src/matcher.ts`]((https://github.tumblr.net/Tumblr/shitbot/blob/master/src/matcher.ts)).
+Matchers are defined in [`src/matcher.ts`](./blob/master/src/matcher.ts).
 
 ## Handlers
 The second part of responding is the handler, this is a function that is called iff the matcher

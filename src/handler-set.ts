@@ -5,6 +5,9 @@ import { EphemoralReply } from './responses/ephemoral-reply'
 import { Reply } from './responses/reply'
 import { Shitbot } from '.'
 
+/**
+ * Converts error into something that can be returned to slack.
+ */
 function slackStringifyError(foo: any) {
   let str = `There was a problem with your response:
 > ${foo}`
@@ -16,22 +19,23 @@ ${JSON.stringify(foo)}
 \`\`\``
 }
 
-function isPromise<T>(thing: Promise<T> | any): thing is Promise<T> {
-  return thing instanceof Promise
-}
-
-function notNull<T>(thing: T | void | undefined | null): thing is T {
-  return thing !== undefined && thing !== null
-}
+export type HandlerResult = OutboundMessage | string | void | null | undefined
 
 export type MessageHandler = (
   msg: Message,
   ...results: any[]
-) => OutboundMessage | void | null | undefined | string
+) => Promise<HandlerResult> | HandlerResult
 
 export class HandlerSet {
   private handlers: { matcher: Matcher; handler: MessageHandler }[] = []
 
+  /**
+   * Add a handler for a given matcher to the current set of bot handlers.
+   * There's currently no way to remove one after adding.
+   *
+   * @param matcher Something that inherits from `Matcher` that indicates when the handler should run
+   * @param handler A function to handle when the matcher is triggred, can be an async function or return a promise.
+   */
   add(matcher: Matcher, handler: MessageHandler) {
     this.handlers.push({
       matcher,
@@ -39,6 +43,9 @@ export class HandlerSet {
     })
   }
 
+  /**
+   * Get all the responses for a given message and send them to the bot
+   */
   async handle(bot: Shitbot, message: Message) {
     const responses = await this.responses(message)
 
@@ -55,6 +62,9 @@ export class HandlerSet {
     return responses
   }
 
+  /**
+   * Get all the responses that should be sent for a given message
+   */
   private async responses(message: Message) {
     let promises = this.handlers.map(({ matcher, handler }) => {
       const { matched, results } = matcher._matchMessage(message)
@@ -74,6 +84,13 @@ export class HandlerSet {
     return responses
   }
 
+  /**
+   * Run the handler because the matcher has found to be true
+   *
+   * @param handler
+   * @param message
+   * @param results The results from the matcher if applicable
+   */
   private async dealWithit(
     handler: MessageHandler,
     message: Message,
