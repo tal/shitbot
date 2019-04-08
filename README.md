@@ -1,7 +1,7 @@
 # Shitbot
 ## A simple bot for shitposting
 
-For now check out [`src/_responders.ts`](./blob/master/src/_responders.ts) for where to make more responders.
+For now check out [`src/_responders.ts`](./src/_responders.ts) for where to make more responders.
 
 ## Matcher
 Responders have a matcher, that filters what messages it'll respond to. They are a builder
@@ -24,7 +24,7 @@ You can chain these to combine matchers like this:
 all.startsWith('foo').isIM
 ```
 
-Matchers are defined in [`src/matcher.ts`](./blob/master/src/matcher.ts).
+Matchers are defined in [`src/matcher.ts`](./src/matcher.ts).
 
 ## Handlers
 The second part of responding is the handler, this is a function that is called iff the matcher
