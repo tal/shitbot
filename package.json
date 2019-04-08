@@ -1,6 +1,6 @@
 {
   "name": "shitbot",
-  "version": "1.0.0-rc1",
+  "version": "1.0.0-rc2",
   "description": "Dynamic Shitposting Bot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
