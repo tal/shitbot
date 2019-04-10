@@ -37,22 +37,19 @@ export class Matcher {
    * Checks if the text of message starts with supplied string
    * @param str
    */
-  startsWith = (str: string) => {
-    return this.append(
+  startsWith = (str: string) =>
+    this.append(
       // First part is to see if it starts, second is to return the substring after
       // the prefix to the handler
       msg =>
         msg.text.startsWith(str) && msg.text.substring(str.length).trimLeft(),
     )
-  }
 
   /**
    * Checks if the text of the message has passed string anywehre in it
    * @param str
    */
-  contains = (str: string) => {
-    return this.append(msg => msg.text.includes(str))
-  }
+  contains = (str: string) => this.append(msg => msg.text.includes(str))
 
   /**
    * A rule that will return true if any of the passed matchers are true, the results of the
@@ -60,8 +57,8 @@ export class Matcher {
    *
    * @param matchers
    */
-  or = (...matchers: Matcher[]) => {
-    return this.append(msg => {
+  or = (...matchers: Matcher[]) =>
+    this.append(msg => {
       let results: any[] = []
       for (let m of matchers) {
         let result = m._matchMessage(msg)
@@ -78,7 +75,6 @@ export class Matcher {
         results,
       }
     })
-  }
 
   /**
    * A rule that will return true if all of the passed matchers are true, the results of the
@@ -86,8 +82,8 @@ export class Matcher {
    *
    * @param matchers
    */
-  and = (...matchers: Matcher[]) => {
-    return this.append(msg => {
+  and = (...matchers: Matcher[]) =>
+    this.append(msg => {
       let results: any[] = []
       for (let m of matchers) {
         let result = m._matchMessage(msg)
@@ -106,7 +102,6 @@ export class Matcher {
         results,
       }
     })
-  }
 
   /**
    * This matches the text based on a regex.
@@ -114,17 +109,13 @@ export class Matcher {
    * It appends the match to the handler's arguments
    * @param regex Regext to apply to text of message
    */
-  matches = (regex: RegExp) => {
-    return this.append(msg => msg.text.match(regex))
-  }
+  matches = (regex: RegExp) => this.append(msg => msg.text.match(regex))
 
   /**
    * Compares if the message sent equals exactly the supplied one.
    * @param str
    */
-  messageIs = (str: string) => {
-    return this.append(msg => msg.text === str)
-  }
+  messageIs = (str: string) => this.append(msg => msg.text === str)
 
   /**
    * Checks if the bot is either @mentioned or IMed
@@ -156,6 +147,14 @@ export class Matcher {
     strs = strs.map(str => (str.startsWith('#') ? str.slice(1) : str))
     return this.append(msg => !!strs.find(str => msg.channelName === str))
   }
+
+  /**
+   * Alias of inChannel
+   *
+   * Checks to see if the message was sent in any of the supplied channels
+   * @param strs A list of channel names to match on, will match on any provided
+   */
+  inChannels = (...strs: string[]) => this.inChannel(...strs)
 
   /**
    * Checks to see if a set of users were the ones who sent the message

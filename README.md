@@ -35,7 +35,7 @@ pattern that you can add more filters.
 - `startsWith('string')` - only matches messages that start with the supplied string, provides
   everything after the prefix to the handler as an argument
 - `contains('string')` - matches any message that has the supplied string anywhre in it
-- `matches(/prefix: (.+)/i)` - matches to a regex, any capture groups are then passed along
+- `matches(/^prefix: (.+)/i)` - matches to a regex, any capture groups are then passed along
 to the handler
 - `messageIs('string')` - only matches if the whole message is only the supplied string (not counting
   mentions at beginning of string)
@@ -67,6 +67,9 @@ The message supplies the following pieces of information
 - `msg.text` - the body of the message, if you `@shitbot` it will automatically remove that from the text
 - `msg.userName` - the user that sent the message
 - `msg.channelName` - the channel name that the message was posted in
+- `msg.conversationId` - the id of the channel the message was sent in
+- `msg.isIM` - if the message is an IM
+- `msg.userId` - the user id of the sender
 
 ### Handler Result
 The handler can return a string, that's a quick alias for just replying in the same channel that the original

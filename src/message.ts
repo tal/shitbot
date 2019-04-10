@@ -32,7 +32,7 @@ export class Message {
   /**
    * The ID of the user who sent the message.
    */
-  get userID() {
+  get userId() {
     return this.data.user
   }
 
@@ -74,6 +74,13 @@ export class Message {
       return match[2]
     }
     return this.data.text
+  }
+
+  /**
+   * If the message is sent directly or in a channel
+   */
+  get isIM() {
+    return !!this.im
   }
 
   /**
