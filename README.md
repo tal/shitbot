@@ -52,6 +52,13 @@ all.isIM.startsWith('foo')
 
 Matchers are defined in [`src/matcher.ts`](./src/matcher.ts).
 
+#### Logic Matchers
+There are some matchers for doing more complex logic if you want
+
+- `or(all.inChannel('random'), all.isIM)`
+- `and(all.inChannel('random'), all.startsWith('hi'))` - mostly included for completeness, should probably just use normal chaining for and
+- `not(all.isIM)`
+
 ### Handlers
 The second part of responding is the handler, this is a function that is called iff the matcher
 succeeds.

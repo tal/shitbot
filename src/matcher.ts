@@ -104,6 +104,16 @@ export class Matcher {
     })
 
   /**
+   * Only matchif the nested matcher is not true
+   */
+  not = (matcher: Matcher) =>
+    this.append(msg => {
+      let result = matcher._matchMessage(msg)
+
+      return !result.matched
+    })
+
+  /**
    * This matches the text based on a regex.
    *
    * It appends the match to the handler's arguments
