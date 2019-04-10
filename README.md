@@ -1,32 +1,58 @@
 # Shitbot
 ## A simple bot for shitposting
 
-For now check out [`src/_responders.ts`](./src/_responders.ts) for where to make more responders.
+In reality it's a bot that just tries to make it really fast and easy to respond to messages
+that are sent.
 
-## Matcher
+Right now it's mainly for handling messages live as they come in. You can see a bunch of
+contrived examples in [`src/_testbot.ts`](./src/_testbot.ts).
+
+## Quickstart
+
+The most basic responder probably looks like this
+
+```js
+import { Shitbot, all } from 'shitbot'
+const bot = new Shitbot(token)
+
+bot.handle(
+  // Only if they do: `@bot hi` or `/msg @bot hi`
+  all.directedAtBot.contains('hi'),
+  msg => `hi to you too ${msg.userName} 🤘`,
+)
+```
+
+The first argument is the "matcher" and the second argument is the "handler".
+
+The matcher filters the messages so you only respond to applicable messages, the handler
+dictates how to respond to the message.
+
+### Matcher
 Responders have a matcher, that filters what messages it'll respond to. They are a builder
 pattern that you can add more filters.
 
 - `all` - matches all messages, must be the seed for all matchers
-- `startsWith('string')` - only matches messages that start with the supplied string
+- `startsWith('string')` - only matches messages that start with the supplied string, provides
+  everything after the prefix to the handler as an argument
 - `contains('string')` - matches any message that has the supplied string anywhre in it
 - `matches(/prefix: (.+)/i)` - matches to a regex, any capture groups are then passed along
 to the handler
-- `messageIs('string')` - only matches if the whole message is only the supplied string
+- `messageIs('string')` - only matches if the whole message is only the supplied string (not counting
+  mentions at beginning of string)
 - `directedAtBot` - only match if the user `@mentions` the bot or if they IM the bot
-- `mentionsBot` - matches only if the message starts with `@shitbot`
-- `isIM` - only matches if message is sent via an IM
-- `inChannels('new_york', 'tumblr')` - matches any of supplied channels
+- `mentionsBot` - matches only if the message starts with `@shitbot` (or whatever the bot is named)
+- `isIM` - only matches if message is sent via an IM to the bot
+- `inChannels('new_york', 'random')` - matches any of supplied channels
 
-You can chain these to combine matchers like this:
+You can, and should, chain these to combine matchers like this:
 
 ```js
-all.startsWith('foo').isIM
+all.isIM.startsWith('foo')
 ```
 
 Matchers are defined in [`src/matcher.ts`](./src/matcher.ts).
 
-## Handlers
+### Handlers
 The second part of responding is the handler, this is a function that is called iff the matcher
 succeeds.
 
@@ -36,7 +62,7 @@ Handlers are just functions that take in a message and return a response, in the
 (msg) => `echo ${msg.text}`
 ```
 
-### Message
+#### Message
 The message supplies the following pieces of information
 - `msg.text` - the body of the message, if you `@shitbot` it will automatically remove that from the text
 - `msg.userName` - the user that sent the message
@@ -61,3 +87,9 @@ If someone posts something that you want to act on you can have the bot act on t
 If you send the bot a link to a message with content in that body, the content provided will act on the
 shared post rather than the IM itself. Share it like this:
 ![share message ui](./share-message-ui.png)
+
+## TODO
+- [ ] Allow sending attachments
+- [ ] Add ability to send messages without replying
+- [ ] Add scheduling to sending messages
+- [ ] Add web UI for adding rules (pie in the sky)

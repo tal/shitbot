@@ -1,5 +1,6 @@
 import { Message } from './message'
 import { KeyLock } from './key-lock'
+import { hours } from './helpers'
 
 /**
  * A private function that defines how a matcher should work, only supposed
@@ -7,6 +8,10 @@ import { KeyLock } from './key-lock'
  */
 type MatcherFunc = (msg: Message) => any
 
+/**
+ * The final output of a matcher, it contains whether it was scucessful but also contains
+ * the output of the matchers so they can be passed to the handeler.
+ */
 type MatcherResult = { matched: boolean; results: any[] }
 
 function isMatcherResult(res?: any): res is MatcherResult {
@@ -17,6 +22,11 @@ function isMatcherResult(res?: any): res is MatcherResult {
   )
 }
 
+/**
+ * Used for matching messages against logic. Designed to chain together many `MatcherFunc`s
+ * using a builder pattern. The matchers are matched from left to right with first element in
+ * internal storage being checked first.
+ */
 export class Matcher {
   private baseMatchers: MatcherFunc[]
   constructor(...matchers: MatcherFunc[]) {
@@ -29,6 +39,8 @@ export class Matcher {
    */
   startsWith = (str: string) => {
     return this.append(
+      // First part is to see if it starts, second is to return the substring after
+      // the prefix to the handler
       msg => msg.text.startsWith(str) && msg.text.substring(str.length),
     )
   }
@@ -42,7 +54,8 @@ export class Matcher {
   }
 
   /**
-   * A rule that will return true if any of the passed matchers are true
+   * A rule that will return true if any of the passed matchers are true, the results of the
+   * contained results are returned as an array.
    *
    * @param matchers
    */
@@ -67,7 +80,8 @@ export class Matcher {
   }
 
   /**
-   * A rule that will return true if all of the passed matchers are true
+   * A rule that will return true if all of the passed matchers are true, the results of the
+   * contained results are returned as an array.
    *
    * @param matchers
    */
@@ -119,22 +133,22 @@ export class Matcher {
   }
 
   /**
-   * Checks if the bot is @mentioned
+   * Checks if the bot is @mentioned in the message
    */
   get mentionsBot() {
     return this.append(msg => msg.mentionedBot)
   }
 
   /**
-   * Checks if the message is sent in an IM
+   * Checks if the message is sent in an IM (to the bot)
    */
   get isIM() {
     return this.append(msg => !!msg.im)
   }
 
   /**
-   * Checks to see if hte message was sent in any of the supplied channels
-   * @param strs
+   * Checks to see if the message was sent in any of the supplied channels
+   * @param strs A list of channel names to match on, will match on any provided
    */
   inChannel = (...strs: string[]) => {
     // Remove # from beginning of all channels
@@ -142,6 +156,20 @@ export class Matcher {
     return this.append(msg => !!strs.find(str => msg.channelName === str))
   }
 
+  /**
+   * Checks to see if a set of users were the ones who sent the message
+   */
+  byUser = (...strs: string[]) =>
+    this.append(msg => !!strs.find(str => msg.userName === str))
+
+  /**
+   * Throttles the execution of this matcher chain. Should be placed last
+   *
+   * @param lockOrTTL Provide a ms limit to throttle by, or you can provide an
+   * instance of `KeyLock` that has custom logic.
+   * @param key The key associated with this message to lock on, often the user id
+   * of the sender or the channel id the message was sent in.
+   */
   throttledBy = (
     lockOrTTL: KeyLock | number,
     key: (msg: Message) => string,
@@ -159,30 +187,55 @@ export class Matcher {
     })
   }
 
+  /**
+   * Throttles so that any user can only trigger it every 4 hours.
+   */
   get throttledByUser() {
-    return this.throttledBy(4 * 60 * 60 * 1000, msg => msg.userID)
+    return this.throttledBy(4 * hours, msg => msg.userID)
   }
 
+  /**
+   * Throttles by the channel the message is in, throttled to 4 hours.
+   */
   get throttledByConversation() {
-    return this.throttledBy(4 * 60 * 60 * 1000, msg => msg.conversationId)
+    return this.throttledBy(4 * hours, msg => msg.conversationId)
   }
 
+  /**
+   * Creates a new matcher with new logic added to the existing chain.
+   */
   private append(fn: MatcherFunc) {
     return new Matcher(...this.baseMatchers, fn)
   }
 
+  /**
+   * The method used to see if the given message matches the current chain of matchers.
+   * Should only be used internally to framework.
+   */
   _matchMessage(msg: Message): { matched: boolean; results: any[] } {
     let results: any[] = []
+
+    // Loop though each matcher included in the chain, each matcher is a function
     for (let matcher of this.baseMatchers) {
+      // Any output of the matcher, eg for regex the matching array or true/false for most
       let val = matcher(msg)
 
+      // Matchers return an object of a specific type, if it's already in that format
+      // continue into basic logic. This is likely a matcher that contains nested other
+      // matchers like the `or` or `and` matcher.
       if (isMatcherResult(val)) {
         if (!val.matched) {
+          // Not matched so bail out, no more matchers should be used
           return val
         } else {
+          // Give the results to the handler and continue to the next matcher
           results.push(val.results)
         }
       } else {
+        // If it's not already a matcher format it's a raw value, convert that raw
+        // value into a matcher result.
+
+        // If falsy bail out, don't process anymore matchers in the chain
         if (val === false || val === undefined || val === null) {
           return {
             matched: false,
@@ -190,10 +243,13 @@ export class Matcher {
           }
         }
 
+        // If it's matched and there's no other info then the handler doesn't need
+        // it in the results, so just continue on without adding it but not failing.
         if (val === true) {
           continue
         }
 
+        // Value is some object so we want to return it to the handler
         results.push(val)
       }
     }
