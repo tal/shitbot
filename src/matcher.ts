@@ -41,7 +41,8 @@ export class Matcher {
     return this.append(
       // First part is to see if it starts, second is to return the substring after
       // the prefix to the handler
-      msg => msg.text.startsWith(str) && msg.text.substring(str.length),
+      msg =>
+        msg.text.startsWith(str) && msg.text.substring(str.length).trimLeft(),
     )
   }
 

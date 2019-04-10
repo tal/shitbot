@@ -1,6 +1,6 @@
 import { Shitbot, all } from '.'
 
-const token = process.env.SLACKBOT_TOKEN
+const token = ocess.env.SLACKBOT_TOKEN
 
 export const bot = new Shitbot(token)
 
@@ -43,6 +43,15 @@ bot.handle(
   async (msg, match) => {
     await fetch('https://myserver.com/start?n=${match[1]}')
     return `Started Incident: ${match[1]}`
+  },
+)
+
+// This is the same as above, but with starts with instead of match
+bot.handle(
+  all.inChannel('incidents').startsWith('.start'),
+  async (msg, rest) => {
+    await fetch('https://myserver.com/start?n=${rest}')
+    return `Started Incident: ${rest}`
   },
 )
 
