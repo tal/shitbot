@@ -1,6 +1,6 @@
 import { Shitbot, all } from '.'
 
-const token = ocess.env.SLACKBOT_TOKEN
+const token = process.env.SLACKBOT_TOKEN
 
 export const bot = new Shitbot(token)
 
@@ -54,6 +54,26 @@ bot.handle(
     return `Started Incident: ${rest}`
   },
 )
+
+bot.handle(all.directedAtBot.startsWith('heyo'), msg => {
+  return msg.reply({
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: 'You can add an image next to text in this block.',
+        },
+        accessory: {
+          type: 'image',
+          image_url:
+            'https://api.slack.com/img/blocks/bkb_template_images/plants.png',
+          alt_text: 'plants',
+        },
+      },
+    ],
+  })
+})
 
 // If there's an error an ephemoral message will be sent to the person who cuased it
 // to help debug

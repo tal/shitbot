@@ -201,7 +201,7 @@ export class Matcher {
    * Throttles so that any user can only trigger it every 4 hours.
    */
   get throttledByUser() {
-    return this.throttledBy(4 * hours, msg => msg.userID)
+    return this.throttledBy(4 * hours, msg => msg.userId)
   }
 
   /**

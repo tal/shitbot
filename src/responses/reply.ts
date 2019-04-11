@@ -1,32 +1,41 @@
 import { Message } from '../message'
 import { OutboundMessage } from './outbound-message'
-import { MessageAttachment } from '@slack/web-api'
+import { MessageAttachment, KnownBlock } from '@slack/web-api'
 import { Attachment } from '../types'
 import { Shitbot } from '..'
 
 interface MessagePayload {
-  text: string
+  text?: string
   attachments?: MessageAttachment[]
+  blocks?: KnownBlock[]
 }
 
 export type MessageConveratable =
   | string
   | MessageAttachment
   | MessageAttachment[]
+  | MessagePayload
+
+function isMessagePayload(obj: MessageConveratable): obj is MessagePayload {
+  return (
+    typeof obj !== 'string' &&
+    ('text' in obj || 'attachments' in obj || 'blocks' in obj)
+  )
+}
 
 function payload(value: MessageConveratable): MessagePayload {
-  if (typeof value === 'string') {
+  if (isMessagePayload(value)) {
+    return value
+  } else if (typeof value === 'string') {
     return {
       text: value,
     }
   } else if (value instanceof Array) {
     return {
-      text: '',
       attachments: value,
     }
   } else {
     return {
-      text: '',
       attachments: [value],
     }
   }
@@ -54,6 +63,7 @@ export class Reply extends OutboundMessage {
   async doIt(bot: Shitbot) {
     const payload = {
       channel: this.conversationId,
+      text: '',
       ...this.payload,
       as_user: true,
       thread_ts: this.threadTS,

@@ -93,6 +93,35 @@ that author can see this.
 - `msg.emojiWordReaction('word')` - Adds emoji reaction that spells out the supplied word
 - `msg.emojiReaction('emoji1','emoji2'...)` - Adds any emoji reactions to the message that was sent
 
+### Attachments & Blocks
+You can add richer content to your responses with Attachments (deprecated) and [Blocks](https://api.slack.com/block-kit).
+
+This is easy, for `reply`, `replyThread`, and `ephemoralResponse` you can just include them instead of the text:
+
+```js
+bot.handle(
+  all.isIM,
+  msg => {
+    const blocks = [
+      	{
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": "You can add an image next to text in this block."
+          },
+          "accessory": {
+            "type": "image",
+            "image_url": "https://api.slack.com/img/blocks/bkb_template_images/plants.png",
+            "alt_text": "plants"
+          }
+        }
+    ]
+
+    return msg.reply({ blocks })
+  }
+)
+```
+
 ## Advanced
 ### Acting on others messages
 If someone posts something that you want to act on you can have the bot act on that fairly magically.
