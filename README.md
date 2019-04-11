@@ -1,5 +1,7 @@
 # Shitbot
 ## A simple bot for shitposting
+| [Quickstart](#quickstart) | [Matchers](#matcher) | [Handlers](#handler) | [Message](#message) | [Advanced](#advanced) |
+| --- | --- | --- | --- | --- |
 
 In reality it's a bot that just tries to make it really fast and easy to respond to messages
 that are sent.
@@ -59,7 +61,7 @@ There are some matchers for doing more complex logic if you want
 - `and(all.inChannel('random'), all.startsWith('hi'))` - mostly included for completeness, should probably just use normal chaining for and
 - `not(all.isIM)`
 
-### Handlers
+### Handler
 The second part of responding is the handler, this is a function that is called iff the matcher
 succeeds.
 
@@ -85,11 +87,11 @@ message was sent.
 Otherwise you can have the handler respond using methods on the message itself.
 
 - `msg.reply('text')` - Same as plain text, replies in whatever cahnnel.
-- `msg.emojiWordReaction('word')` - Adds emoji reaction that spells out the supplied word
-- `msg.emojiReaction('emoji1','emoji2'...)` - Adds any emoji reactions to the message that was sent
 - `msg.ephemoralResponse('message')` - Sends the message to the person who wrote the original message, only
 that author can see this.
 - `msg.replyThread('message')` - replies but in a new thread on the existing message
+- `msg.emojiWordReaction('word')` - Adds emoji reaction that spells out the supplied word
+- `msg.emojiReaction('emoji1','emoji2'...)` - Adds any emoji reactions to the message that was sent
 
 ## Advanced
 ### Acting on others messages
