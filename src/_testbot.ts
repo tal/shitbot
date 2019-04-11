@@ -11,10 +11,8 @@ bot.handle(
 )
 
 bot.handle(
-  all
-    .contains('you guys')
-    // Only if it hasnt been mentioned to by this user or in this channel for the last 4 hours
-    .and(all.throttledByConversation, all.throttledByUser),
+  // Only if it hasnt been mentioned to by this user or in this channel for the last 4 hours
+  all.contains('you guys').throttledByConversation.throttledByUser,
   msg =>
     'Not a big deal but consider using “y’all”, "everyone", or “folks” instead. It’s more inclusive than “guys”. 👍',
 )
