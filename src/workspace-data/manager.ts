@@ -125,7 +125,19 @@ export class Manager {
     return users.find(user => user.id === id)
   }
 
+  private get allStores() {
+    return [this.channelStore, this.imStore, this.userStore]
+  }
+
   ensureAllTalky() {
     return Promise.all([this.channels(), this.ims()]).then(() => undefined)
+  }
+
+  resetAll() {
+    return Promise.all(
+      this.allStores.map((store: { reset: () => Promise<any> }) =>
+        store.reset(),
+      ),
+    ).then(() => undefined)
   }
 }

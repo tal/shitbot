@@ -29,6 +29,8 @@ bot.handle(
 )
 ```
 
+Starting the bot connects it to the web and rtm slack connetions and gets everything going.
+
 The first argument is the "matcher" and the second argument is the "handler".
 
 The matcher filters the messages so you only respond to applicable messages, the handler
@@ -128,6 +130,19 @@ bot.handle(
 ```
 
 ## Advanced
+
+### Getting channel and user information
+The bot helps provide a link between user/channel names and their IDs to make it easier to use. If you
+want to leverage that data store you can use the following methods:
+
+- `await bot.data.channel(channelId)` - returns a full channel object if exists
+- `await bot.data.user(userId)` - returns a full user object
+- `await bot.data.channels` - returns an array of all known channels
+- `await bot.data.users` - returns an array of all known channels
+
+The internal data store is cached for 5 minutes, so thats how long you'd need to wait if you create a new
+user or channel and want it to be reflected. Or you can reset the data using `await bot.data.resetAll()`.
+
 ### Acting on others messages
 If someone posts something that you want to act on you can have the bot act on that fairly magically.
 If you send the bot a link to a message with content in that body, the content provided will act on the
@@ -135,7 +150,7 @@ shared post rather than the IM itself. Share it like this:
 ![share message ui](./share-message-ui.png)
 
 ## TODO
-- [ ] Allow sending attachments
-- [ ] Add ability to send messages without replying
+- [x] Allow sending attachments (1.0.0)
+- [ ] Add ability to send messages at any point, not just when inside a reply handler
 - [ ] Add scheduling to sending messages
-- [ ] Add web UI for adding rules (pie in the sky)
+- [ ] Add web UI for adding rules

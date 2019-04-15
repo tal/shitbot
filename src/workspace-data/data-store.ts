@@ -2,7 +2,6 @@ const minutes = 1000 * 60
 
 export class DataStore<T> {
   private updatedAt?: Date
-  private storedData?: T
   private outstandingPromise?: Promise<T>
 
   /** ms until the data expires */
@@ -18,6 +17,12 @@ export class DataStore<T> {
     return deathTime > new Date().getTime()
   }
 
+  reset() {
+    this.outstandingPromise = undefined
+
+    return this.data()
+  }
+
   async data(): Promise<T> {
     if (!this.isExpired) return this.performFetch()
     if (!this.storedData) return this.performFetch()
@@ -30,11 +35,9 @@ export class DataStore<T> {
       return this.outstandingPromise
     }
 
-    this.storedData = undefined
     this.outstandingPromise = this.fetchData()
 
     this.outstandingPromise.then(data => {
-      this.storedData = data
       this.updatedAt = new Date()
     })
     return this.outstandingPromise
