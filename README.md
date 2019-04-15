@@ -11,6 +11,10 @@ contrived examples in [`src/_testbot.ts`](./src/_testbot.ts).
 
 ## Quickstart
 
+First install:
+| `npm install shitbot` |  `yarn add shitbot`
+| --- | --- |
+
 The most basic responder probably looks like this
 
 ```js
