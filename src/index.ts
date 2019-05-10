@@ -37,7 +37,15 @@ export class Shitbot {
   }
 
   async start(cb?: (msg: Message) => void) {
-    await this.data.ensureAllTalky().then(() => this.rtm.start())
+    const { self, team } = await this.data
+      .ensureAllTalky()
+      .then(() => this.rtm.start())
+
+    console.log(
+      `📶 shitbot connected as ${self.name} to workspace ${team.name} (${
+        team.domain
+      }.slack.com)`,
+    )
 
     this.rtm.on('message', async (_msg: RTMMessageEvent) => {
       if (

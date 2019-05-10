@@ -23,15 +23,8 @@ export class DataStore<T> {
     return this.data()
   }
 
-  async data(): Promise<T> {
-    if (!this.isExpired) return this.performFetch()
-    if (!this.storedData) return this.performFetch()
-
-    return this.storedData
-  }
-
-  private performFetch(): Promise<T> {
-    if (this.outstandingPromise) {
+  data(): Promise<T> {
+    if (this.outstandingPromise && !this.isExpired) {
       return this.outstandingPromise
     }
 
