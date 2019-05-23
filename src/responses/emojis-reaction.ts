@@ -1,8 +1,8 @@
 import { OutboundMessage } from './outbound-message'
 import { Message } from '../message'
 import { Attachment } from '../types'
-import { timeout } from '../helpers'
-import { Shitbot } from '..'
+import { timeout } from '../utils'
+import { Shitbot } from '../shitbot'
 
 export class EmojisReaction extends OutboundMessage {
   threadTs: string

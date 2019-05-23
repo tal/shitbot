@@ -1,4 +1,4 @@
-import { Shitbot } from '..'
+import { Shitbot } from '../shitbot'
 
 export abstract class OutboundMessage {
   constructor(public readonly conversationId: string) {}

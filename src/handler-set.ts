@@ -3,7 +3,7 @@ import { Matcher } from './matcher'
 import { OutboundMessage } from './responses/outbound-message'
 import { EphemoralReply } from './responses/ephemoral-reply'
 import { Reply } from './responses/reply'
-import { Shitbot } from '.'
+import { Shitbot } from './shitbot'
 import { ReactionAdded } from './reaction-added'
 import { notEmpty } from './utils'
 
@@ -25,6 +25,12 @@ export type HandlerResult = OutboundMessage | string | void | null | undefined
 
 export type MessageHandler = (
   msg: Message,
+  ...results: any[]
+) => Promise<HandlerResult> | HandlerResult
+
+export type ReactionMessageHandler = (
+  msg: Message,
+  reaction: ReactionAdded,
   ...results: any[]
 ) => Promise<HandlerResult> | HandlerResult
 
@@ -68,7 +74,7 @@ export class HandlerSet {
   addForReaction(
     reaction: string | string[] | RegExp,
     matcher: Matcher,
-    handler: MessageHandler,
+    handler: ReactionMessageHandler,
   ) {
     this.reactionHandlers.push({
       reaction,
@@ -96,7 +102,7 @@ export class HandlerSet {
       .map(matcher => {
         const { reaction: test } = matcher
 
-        const matched = reactionMatcherMatches(test, reaction.reaction)
+        const matched = reactionMatcherMatches(test, reaction.emoji)
         if (matched) {
           return {
             matched,

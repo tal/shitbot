@@ -2,7 +2,7 @@ import { Message } from '../message'
 import { OutboundMessage } from './outbound-message'
 import { MessageAttachment, KnownBlock } from '@slack/web-api'
 import { Attachment } from '../types'
-import { Shitbot } from '..'
+import { Shitbot } from '../shitbot'
 
 interface MessagePayload {
   text?: string

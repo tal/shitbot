@@ -1,5 +1,4 @@
-import { Shitbot } from '.'
-
+import { Shitbot } from './shitbot'
 import { RTMReactionAddedEvent } from './types'
 import { User } from './workspace-data/manager'
 import { Message } from './message'
@@ -9,7 +8,7 @@ export class ReactionAdded {
   /**
    * The emoji name of te reaction added
    */
-  public readonly reaction: string
+  public readonly emoji: string
 
   /**
    * The skin tone used on the reaction if applicable
@@ -24,7 +23,7 @@ export class ReactionAdded {
   ) {
     const { emoji, skinTone } = normalizeEmoji(data.reaction)
 
-    this.reaction = emoji
+    this.emoji = emoji
     this.skinTone = skinTone
   }
 
@@ -33,6 +32,10 @@ export class ReactionAdded {
    */
   get ts() {
     return this.data.ts
+  }
+
+  get byUserId() {
+    return this.data.user
   }
 
   static async build(bot: Shitbot, data: RTMReactionAddedEvent) {

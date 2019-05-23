@@ -52,6 +52,11 @@ to the handler
 - `mentionsBot` - matches only if the message starts with `@shitbot` (or whatever the bot is named)
 - `isIM` - only matches if message is sent via an IM to the bot
 - `inChannels('new_york', 'random')` - matches any of supplied channels
+- `url(options)` - Matches if the message contains this url, the urls themselves are added to the arguments list of the handler
+- `url(options.host)` - Specify if the host exactly matches the provided (note: it will match `www.twitter.com` and `twitter.com` for `twitter.com`)
+- `url(options.path)` - Specify if the path exactly equals the supplied string
+- `url(options.pathLike)` - Pass in a regex to match on the path only, will add the match to the url in the arguments
+- `url(options.pathStartsWith)` - Will match any path that starts with the supplied string
 
 You can, and should, chain these to combine matchers like this:
 

@@ -99,7 +99,7 @@ bot.onReaction(
   /.+/,
   all,
   (targetMsg, reaction) =>
-    `That's great <@${targetMsg.userId}> :${reaction.reaction}:`,
+    `That's great <@${targetMsg.userId}> :${reaction.emoji}:`,
 )
 
 function wrapWithTicks(str: string) {
@@ -109,7 +109,7 @@ function wrapWithTicks(str: string) {
 bot.onReaction(
   'thread-please',
   all.inChannel('bottest-wat'),
-  async (targetMsg, emoji) => {
+  async (targetMsg, reaction) => {
     const channel = await bot.data.channelNamed('bottest-wat')
 
     if (!channel) throw `cannot find channel named bottest-wat`
@@ -119,9 +119,9 @@ bot.onReaction(
       channel: targetMsg.conversationId,
     })
 
-    const text = `Deleted message from <@${
+    const text = `${reaction.emoji} Deleted message from <@${
       targetMsg.userId
-    }>, reported by user <@${emoji.byUser.id}>\n${wrapWithTicks(
+    }>, reported by user <@${reaction.byUserId}>\n${wrapWithTicks(
       targetMsg.text,
     )}`
 
@@ -136,6 +136,13 @@ bot.onReaction(
         targetMsg.text,
       )}`,
     )
+  },
+)
+
+bot.handle(
+  all.url({ host: 'twitter.com', pathLike: /^\/(.+?)\/status\/(\d+)/ }),
+  (msg, urls) => {
+    return wrapWithTicks(JSON.stringify(urls, null, 2))
   },
 )
 

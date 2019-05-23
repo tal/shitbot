@@ -1,12 +1,38 @@
+import { URL } from 'url'
+
 import { RTMMessageEvent, Attachment } from './types'
 import { User, Channel, IM } from './workspace-data/manager'
 import { Reply, MessageConveratable } from './responses/reply'
 import { EmojiWordReaction } from './responses/emoji-word-reaction'
 import { EmojisReaction } from './responses/emojis-reaction'
 import { EphemoralReply } from './responses/ephemoral-reply'
-import { Shitbot } from '.'
+import { Shitbot } from './shitbot'
+import { allMatches, allSlackURLs } from './utils'
 
 const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/i
+
+export interface URLTextRef {
+  url: URL
+  urlStr: string
+  dispStr: string
+  slackDisplay: string
+}
+
+function isURLTextRef(obj: any): obj is URLTextRef {
+  if (!('url' in obj && obj.url instanceof URL)) {
+    return false
+  }
+  if (!('urlStr' in obj && typeof obj.urlStr !== 'string')) {
+    return false
+  }
+  if (!('dispStr' in obj && typeof obj.dispStr !== 'string')) {
+    return false
+  }
+  if (!('match' in obj && typeof obj.match !== 'string')) {
+    return false
+  }
+  return true
+}
 
 interface MessageData {
   ts: string
@@ -89,6 +115,31 @@ export class Message {
    */
   get isIM() {
     return !!this.im
+  }
+
+  private _urls: URLTextRef[] | undefined
+
+  /**
+   * Extract all urls from a message
+   */
+  get URLs() {
+    if (this._urls) {
+      return this._urls
+    }
+
+    const urls = allSlackURLs(this.text).map(match => {
+      const [slackDisplay, urlStr, dispStr] = match
+
+      const url = new URL(urlStr)
+      return {
+        url,
+        urlStr,
+        dispStr,
+        slackDisplay,
+      }
+    })
+    this._urls = urls
+    return urls
   }
 
   /**

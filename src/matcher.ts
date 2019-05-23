@@ -1,6 +1,6 @@
 import { Message } from './message'
 import { KeyLock } from './key-lock'
-import { hours } from './helpers'
+import { hours, notEmpty } from './utils'
 
 /**
  * A private function that defines how a matcher should work, only supposed
@@ -214,13 +214,66 @@ export class Matcher {
   }
 
   /**
+   * Matches all urls in the message, passes the urls to the handler afterwards
+   * TODO: add routeMatch option that takes form `/foo/:param/foo`
+   */
+  url = ({
+    host,
+    pathname,
+    pathLike,
+    pathContains,
+    pathStartsWith,
+  }: {
+    host: string
+    pathname?: string
+    pathLike?: RegExp
+    pathContains?: string
+    pathStartsWith?: string
+  }) =>
+    this.append(msg => {
+      const wwwHost = `www.${host}`
+      let urls = msg.URLs.filter(
+        u => u.url.host === host || u.url.host === wwwHost,
+      )
+
+      if (pathname) {
+        urls = urls.filter(u => u.url.pathname === pathname)
+      }
+
+      if (pathLike) {
+        urls = urls
+          .map(u => {
+            const m = u.url.pathname.match(pathLike)
+
+            if (m) {
+              return {
+                ...u,
+                pathMatch: m,
+              }
+            }
+          })
+          .filter(notEmpty)
+      }
+
+      if (pathContains) {
+        urls = urls.filter(u => u.url.pathname.indexOf(pathContains) !== -1)
+      }
+
+      if (pathStartsWith) {
+        urls = urls.filter(u => u.url.pathname.indexOf(pathStartsWith) === 0)
+      }
+
+      if (urls.length) {
+        return urls
+      }
+    })
+
+  /**
    * Creates a new matcher with new logic added to the existing chain.
    */
   private append(fn: MatcherFunc) {
     return new Matcher(...this.baseMatchers, fn)
   }
-
-  _matchReaction() {}
 
   /**
    * The method used to see if the given message matches the current chain of matchers.

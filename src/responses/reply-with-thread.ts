@@ -2,7 +2,7 @@ import { OutboundMessage } from './outbound-message'
 import { MessageConveratable, Reply } from './reply'
 import { Attachment } from '../types'
 import { Message } from '../message'
-import { Shitbot } from '..'
+import { Shitbot } from '../shitbot'
 
 /**
  * A helper that posts a new message and then replies to

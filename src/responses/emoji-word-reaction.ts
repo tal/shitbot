@@ -1,7 +1,7 @@
 import { EmojisReaction } from './emojis-reaction'
 import { Message } from '../message'
 import { Attachment } from '../types'
-import { Shitbot } from '..'
+import { Shitbot } from '../shitbot'
 
 export class EmojiWordReaction extends EmojisReaction {
   constructor(message: Message | Attachment, word: string) {

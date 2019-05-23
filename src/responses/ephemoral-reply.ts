@@ -1,6 +1,6 @@
 import { Message } from '../message'
 import { OutboundMessage } from './outbound-message'
-import { Shitbot } from '..'
+import { Shitbot } from '../shitbot'
 
 export class EphemoralReply extends OutboundMessage {
   toUser: string
