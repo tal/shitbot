@@ -108,6 +108,12 @@ export class Manager {
     return channels.find(channel => channel.id === id)
   }
 
+  async channelNamed(name: string) {
+    this.ensureAllTalky()
+    const channels = await this.channels()
+    return channels.find(channel => channel.name === name)
+  }
+
   async im(id: string) {
     this.ensureAllTalky()
     const channels = await this.ims()

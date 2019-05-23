@@ -4,6 +4,7 @@ type RTMEventType =
   | 'goodbye'
   | 'pin_added'
   | 'emoji_changed'
+  | 'reaction_added'
 
 type RTMMessageSubtype =
   | 'bot_message'
@@ -476,6 +477,20 @@ interface ContextBlock extends Block {
    * 	An array of [image elements](https://api.slack.com/reference/messaging/block-elements#image) and [text objects](https://api.slack.com/reference/messaging/composition-objects#text). Maximum number of items is 10.
    */
   elements: (TextCompositionObject | ImageBlockElement)[]
+}
+
+export interface RTMReactionAddedEvent extends RTMEvent {
+  type: 'reaction_added'
+  user: string
+  item_user: string
+  ts: string
+  event_ts: string
+  item: {
+    channel: string
+    ts: string
+    type: 'message'
+  }
+  reaction: string
 }
 
 export interface RTMMessageEvent extends RTMEvent {

@@ -95,4 +95,48 @@ bot.setEmojiLetters({
 // Will convert the word `xox` to an emoji reaction to spell out the word
 bot.handle(all.contains('xox'), msg => msg.emojiWordReaction('xox'))
 
+bot.onReaction(
+  /.+/,
+  all,
+  (targetMsg, reaction) =>
+    `That's great <@${targetMsg.userId}> :${reaction.reaction}:`,
+)
+
+function wrapWithTicks(str: string) {
+  return ['```', str, '```'].join('\n')
+}
+
+bot.onReaction(
+  'thread-please',
+  all.inChannel('bottest-wat'),
+  async (targetMsg, emoji) => {
+    const channel = await bot.data.channelNamed('bottest-wat')
+
+    if (!channel) throw `cannot find channel named bottest-wat`
+
+    await bot.web.chat.delete({
+      ts: targetMsg.ts,
+      channel: targetMsg.conversationId,
+    })
+
+    const text = `Deleted message from <@${
+      targetMsg.userId
+    }>, reported by user <@${emoji.byUser.id}>\n${wrapWithTicks(
+      targetMsg.text,
+    )}`
+
+    await bot.web.chat.postMessage({
+      channel: channel.id,
+      text,
+      as_user: true,
+    })
+
+    return targetMsg.ephemporalResponse(
+      `Your message was deleted because it should be a thread instead:\n${wrapWithTicks(
+        targetMsg.text,
+      )}`,
+    )
+  },
+)
+
 bot.start()

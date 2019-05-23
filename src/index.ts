@@ -3,12 +3,16 @@ import { WebClient, LogLevel } from '@slack/web-api'
 
 import { Message } from './message'
 import { Manager } from './workspace-data/manager'
-import { RTMMessageEvent } from './types'
+import { RTMMessageEvent, RTMReactionAddedEvent } from './types'
 import { HandlerSet, MessageHandler } from './handler-set'
 import { EmojiLetterMap } from './emoji-letter-map'
 import { RandomAccessSet } from './random-access-set'
 import { RoundRobinSet } from './round-robin-set'
 import { Matcher } from './matcher'
+import { ReactionAdded } from './reaction-added'
+import { Reply } from './responses/reply'
+import { ReplyWithThread } from './responses/reply-with-thread'
+import { EphemoralReply } from './responses/ephemoral-reply'
 
 const all = new Matcher()
 
@@ -18,6 +22,9 @@ export {
   all,
   MessageHandler, // Mainly for typings
   Matcher, // Mainly for typings
+  Reply,
+  ReplyWithThread,
+  EphemoralReply,
 }
 
 export class Shitbot {
@@ -30,8 +37,8 @@ export class Shitbot {
   constructor(token?: string) {
     if (!token) throw 'Non-empty token required'
 
-    this.rtm = new RTMClient(token, { logLevel: LogLevel.DEBUG })
-    this.web = new WebClient(token, { logLevel: LogLevel.DEBUG })
+    this.rtm = new RTMClient(token, { logLevel: LogLevel.ERROR })
+    this.web = new WebClient(token, { logLevel: LogLevel.ERROR })
     this.data = new Manager(this.web)
     this.handlers = new HandlerSet()
   }
@@ -39,7 +46,7 @@ export class Shitbot {
   async start(cb?: (msg: Message) => void) {
     const { self, team } = await this.data
       .ensureAllTalky()
-      .then(() => this.rtm.start())
+      .then(() => this.rtm.start() as any)
 
     console.log(
       `📶 shitbot connected as ${self.name} to workspace ${team.name} (${
@@ -47,13 +54,23 @@ export class Shitbot {
       }.slack.com)`,
     )
 
+    this.rtm.on('reaction_added', async (_msg: RTMReactionAddedEvent) => {
+      const reaction = await ReactionAdded.build(this, _msg)
+
+      this.handlers.handleReaction(this, reaction)
+    })
+
     this.rtm.on('message', async (_msg: RTMMessageEvent) => {
-      if (
-        (_msg.subtype && _msg.subtype === 'bot_message') ||
-        (!_msg.subtype && _msg.user === this.rtm.activeUserId) ||
-        // Don't handle thread messages yet
-        (_msg.subtype && _msg.subtype === 'message_replied')
-      ) {
+      if (_msg.subtype) {
+        switch (_msg.subtype) {
+          case 'bot_message':
+          case 'message_deleted':
+          // TODO: support replies
+          case 'message_replied':
+            return
+        }
+      }
+      if (_msg.user === this.rtm.activeUserId) {
         return
       }
 
@@ -76,5 +93,9 @@ export class Shitbot {
 
   handle(matcher: Matcher, handler: MessageHandler) {
     this.handlers.add(matcher, handler)
+  }
+
+  onReaction(...args: Parameters<HandlerSet['addForReaction']>) {
+    this.handlers.addForReaction(...args)
   }
 }

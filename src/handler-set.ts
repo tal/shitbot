@@ -4,6 +4,8 @@ import { OutboundMessage } from './responses/outbound-message'
 import { EphemoralReply } from './responses/ephemoral-reply'
 import { Reply } from './responses/reply'
 import { Shitbot } from '.'
+import { ReactionAdded } from './reaction-added'
+import { notEmpty } from './utils'
 
 /**
  * Converts error into something that can be returned to slack.
@@ -26,8 +28,28 @@ export type MessageHandler = (
   ...results: any[]
 ) => Promise<HandlerResult> | HandlerResult
 
+type ReactionMatcher = string | string[] | RegExp
+
+function reactionMatcherMatches(matcher: ReactionMatcher, reaction: string) {
+  if (matcher instanceof RegExp) {
+    const m = reaction.match(matcher)
+    if (m) {
+      return m
+    }
+  } else if (matcher instanceof Array) {
+    return matcher.find(m => m === reaction)
+  } else if (matcher === reaction) {
+    return matcher
+  }
+}
+
 export class HandlerSet {
   private handlers: { matcher: Matcher; handler: MessageHandler }[] = []
+  private reactionHandlers: {
+    reaction: ReactionMatcher
+    matcher: Matcher
+    handler: MessageHandler
+  }[] = []
 
   /**
    * Add a handler for a given matcher to the current set of bot handlers.
@@ -43,12 +65,100 @@ export class HandlerSet {
     })
   }
 
+  addForReaction(
+    reaction: string | string[] | RegExp,
+    matcher: Matcher,
+    handler: MessageHandler,
+  ) {
+    this.reactionHandlers.push({
+      reaction,
+      matcher,
+      handler,
+    })
+  }
+
   /**
    * Get all the responses for a given message and send them to the bot
    */
-  async handle(bot: Shitbot, message: Message) {
-    const responses = await this.responses(message)
+  async handle(bot: Shitbot, message: Message, results: any[] = []) {
+    const responses = await this.responses({ message, results })
 
+    return this.sendResponses(bot, message, responses)
+  }
+
+  async handleReaction(bot: Shitbot, reaction: ReactionAdded) {
+    const { message } = reaction
+    if (!message) {
+      return Promise.resolve([])
+    }
+
+    const matchedReaction = this.reactionHandlers
+      .map(matcher => {
+        const { reaction: test } = matcher
+
+        const matched = reactionMatcherMatches(test, reaction.reaction)
+        if (matched) {
+          return {
+            matched,
+            matcher,
+          }
+        }
+      })
+      .filter(notEmpty)
+
+    const responses = await Promise.all(
+      matchedReaction.map(({ matcher }) =>
+        this.responses({
+          message,
+          handlers: [matcher],
+          results: [reaction],
+        }),
+      ),
+    )
+
+    const flattenedResponses = responses.reduce((p, c) => [...p, ...c], [])
+
+    return this.sendResponses(bot, message, flattenedResponses)
+  }
+
+  /**
+   * Get all the responses that should be sent for a given message
+   */
+  private async responses({
+    message,
+    results: externalResults = [],
+    handlers = this.handlers,
+  }: {
+    message: Message
+    results?: any[]
+    handlers?: {
+      matcher: Matcher
+      handler: MessageHandler
+    }[]
+  }) {
+    let promises = handlers.map(({ matcher, handler }) => {
+      const { matched, results } = matcher._matchMessage(message)
+
+      if (!matched) return
+
+      return this.dealWithit(handler, message, [...externalResults, ...results])
+    })
+
+    const responses: OutboundMessage[] = []
+    for (let promise of promises) {
+      const val = await promise
+
+      if (!val) continue
+      responses.push(val)
+    }
+    return responses
+  }
+
+  async sendResponses(
+    bot: Shitbot,
+    message: Message,
+    responses: OutboundMessage[],
+  ) {
     await Promise.all(
       responses.map(async response => {
         try {
@@ -59,28 +169,6 @@ export class HandlerSet {
       }),
     )
 
-    return responses
-  }
-
-  /**
-   * Get all the responses that should be sent for a given message
-   */
-  private async responses(message: Message) {
-    let promises = this.handlers.map(({ matcher, handler }) => {
-      const { matched, results } = matcher._matchMessage(message)
-
-      if (!matched) return
-
-      return this.dealWithit(handler, message, results)
-    })
-
-    const responses: OutboundMessage[] = []
-    for (let promise of promises) {
-      const val = await promise
-
-      if (!val) continue
-      responses.push(val)
-    }
     return responses
   }
 

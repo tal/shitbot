@@ -1,4 +1,4 @@
-import { RTMMessageEvent } from './types'
+import { RTMMessageEvent, Attachment } from './types'
 import { User, Channel, IM } from './workspace-data/manager'
 import { Reply, MessageConveratable } from './responses/reply'
 import { EmojiWordReaction } from './responses/emoji-word-reaction'
@@ -8,6 +8,14 @@ import { Shitbot } from '.'
 
 const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/i
 
+interface MessageData {
+  ts: string
+  user: string
+  channel: string
+  text: string
+  attachments?: Attachment[]
+}
+
 /**
  * A wrapper for the bare message object provided by the API. Provides
  * helpers to get channel and user names instead of just ids as well as other
@@ -16,7 +24,7 @@ const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/i
 export class Message {
   constructor(
     readonly bot: Shitbot,
-    private readonly data: RTMMessageEvent,
+    private readonly data: MessageData,
     readonly user: User | undefined,
     readonly channel: Channel | undefined,
     readonly im: IM | undefined,
@@ -184,7 +192,7 @@ export class Message {
    * @param bot
    * @param data The data from the API to form the message
    */
-  static async build(bot: Shitbot, data: RTMMessageEvent) {
+  static async build(bot: Shitbot, data: MessageData) {
     const user = await bot.data.user(data.user)
     const channel = await bot.data.channel(data.channel)
     const im = await bot.data.im(data.channel)

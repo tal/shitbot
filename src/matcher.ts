@@ -28,7 +28,7 @@ function isMatcherResult(res?: any): res is MatcherResult {
  * internal storage being checked first.
  */
 export class Matcher {
-  private baseMatchers: MatcherFunc[]
+  baseMatchers: MatcherFunc[]
   constructor(...matchers: MatcherFunc[]) {
     this.baseMatchers = matchers
   }
@@ -127,6 +127,8 @@ export class Matcher {
    */
   messageIs = (str: string) => this.append(msg => msg.text === str)
 
+  // reactedWith = (...emojis: string[]) => this.append(msg => {})
+
   /**
    * Checks if the bot is either @mentioned or IMed
    */
@@ -218,13 +220,16 @@ export class Matcher {
     return new Matcher(...this.baseMatchers, fn)
   }
 
+  _matchReaction() {}
+
   /**
    * The method used to see if the given message matches the current chain of matchers.
    * Should only be used internally to framework.
    */
-  _matchMessage(msg: Message): { matched: boolean; results: any[] } {
-    let results: any[] = []
-
+  _matchMessage(
+    msg: Message,
+    results: any[] = [],
+  ): { matched: boolean; results: any[] } {
     // Loop though each matcher included in the chain, each matcher is a function
     for (let matcher of this.baseMatchers) {
       // Any output of the matcher, eg for regex the matching array or true/false for most
