@@ -19,7 +19,7 @@ export class Shitbot {
   readonly logLevel: LogLevel
 
   constructor(
-    token?: string,
+    token?: string, // Is optional to allow passing of env var directly
     { logLevel = LogLevel.INFO }: { logLevel?: LogLevel } = {},
   ) {
     if (!token) throw 'Non-empty token required'

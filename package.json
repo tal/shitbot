@@ -1,6 +1,6 @@
 {
   "name": "shitbot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Dynamic Shitposting Bot",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,7 +32,7 @@
     "jest": "^24.7.1",
     "prettier": "^1.16.4",
     "ts-jest": "^24.0.1",
-    "typescript": "3.3.4000"
+    "typescript": "^3.5"
   },
   "dependencies": {
     "@slack/rtm-api": "^5.0.0",

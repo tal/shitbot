@@ -1,8 +1,9 @@
 import { Shitbot, all } from '.'
+import { LogLevel } from '@slack/logger'
 
 const token = process.env.SLACKBOT_TOKEN
 
-export const bot = new Shitbot(token)
+export const bot = new Shitbot(token, { logLevel: LogLevel.DEBUG })
 
 bot.handle(
   // Only if they do: `@bot hi` or `/msg @bot hi`
