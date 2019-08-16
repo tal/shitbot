@@ -131,6 +131,12 @@ export class Manager {
     return users.find(user => user.id === id)
   }
 
+  async userNamed(name: string) {
+    const users = await this.users()
+
+    return users.find(user => user.name === name)
+  }
+
   private get allStores() {
     return [this.channelStore, this.imStore, this.userStore]
   }

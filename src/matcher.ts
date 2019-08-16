@@ -37,19 +37,31 @@ export class Matcher {
    * Checks if the text of message starts with supplied string
    * @param str
    */
-  startsWith = (str: string) =>
+  startsWith = (...strs: string[]) =>
     this.append(
       // First part is to see if it starts, second is to return the substring after
       // the prefix to the handler
-      msg =>
-        msg.text.startsWith(str) && msg.text.substring(str.length).trimLeft(),
+      msg => {
+        for (let str of strs) {
+          if (msg.text.startsWith(str)) {
+            return msg.text.substring(str.length).trimLeft()
+          }
+        }
+      },
     )
 
   /**
    * Checks if the text of the message has passed string anywehre in it
    * @param str
    */
-  contains = (str: string) => this.append(msg => msg.text.includes(str))
+  contains = (...strs: string[]) =>
+    this.append(msg => {
+      for (let str of strs) {
+        if (msg.text.includes(str)) {
+          return true
+        }
+      }
+    })
 
   /**
    * A rule that will return true if any of the passed matchers are true, the results of the

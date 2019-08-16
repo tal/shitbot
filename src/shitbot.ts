@@ -31,16 +31,16 @@ export class Shitbot {
     this.handlers = new HandlerSet()
   }
 
-  async start(cb?: (msg: Message) => void) {
+  async start(cb?: () => void) {
     const { self, team } = await this.data
       .ensureAllTalky()
       .then(() => this.rtm.start() as any)
 
+    if (cb) cb()
+
     if (this.logLevel === LogLevel.DEBUG || this.logLevel === LogLevel.INFO) {
       console.log(
-        `📶 shitbot connected as ${self.name} to workspace ${team.name} (${
-          team.domain
-        }.slack.com)`,
+        `📶 shitbot connected as ${self.name} to workspace ${team.name} (${team.domain}.slack.com)`,
       )
     }
 
@@ -66,9 +66,6 @@ export class Shitbot {
 
       const msg = await Message.build(this, _msg)
 
-      if (cb) {
-        cb(msg)
-      }
       this.handlers.handle(this, msg)
     })
   }
