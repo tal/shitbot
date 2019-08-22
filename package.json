@@ -12,6 +12,12 @@
     "build": "tsc",
     "start": "yarn run build && node dist/index.js"
   },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "CHANGELOG.md",
+    "src/**/*"
+  ],
   "jest": {
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
