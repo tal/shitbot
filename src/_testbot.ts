@@ -153,4 +153,9 @@ bot.handle(
   msg => 'sssshhhhhh ' + JSON.stringify(msg.channel),
 )
 
+bot.handle(all.directedAtBot.startsWith('multiple'), msg => [
+  msg.reply('First Message'),
+  msg.reply('Second Message'),
+])
+
 bot.start()
