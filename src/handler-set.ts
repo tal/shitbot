@@ -21,7 +21,13 @@ ${JSON.stringify(foo)}
 \`\`\``
 }
 
-export type HandlerResult = OutboundMessage | string | void | null | undefined
+export type HandlerResult =
+  | OutboundMessage
+  | string
+  | void
+  | null
+  | undefined
+  | HandlerResult[]
 
 export type MessageHandler = (
   msg: Message,
@@ -150,13 +156,14 @@ export class HandlerSet {
       return this.dealWithit(handler, message, [...externalResults, ...results])
     })
 
-    const responses: OutboundMessage[] = []
+    let responses: OutboundMessage[] = []
     for (let promise of promises) {
       const val = await promise
 
       if (!val) continue
-      responses.push(val)
+      responses = responses.concat(val)
     }
+
     return responses
   }
 
@@ -189,13 +196,25 @@ export class HandlerSet {
     handler: MessageHandler,
     message: Message,
     results: any[],
-  ): Promise<OutboundMessage | undefined> {
+  ): Promise<OutboundMessage[]> {
     const response = await handler(message, ...results)
-    if (response instanceof OutboundMessage) {
-      return response
-    } else if (response) {
-      let reply = new Reply(message, response)
-      return reply
-    }
+
+    return buildArrayFromHandlerResult(message, response)
+  }
+}
+
+function buildArrayFromHandlerResult(
+  message: Message,
+  response: HandlerResult,
+): OutboundMessage[] {
+  if (response instanceof OutboundMessage) {
+    return [response]
+  } else if (response instanceof Array) {
+    return response.map(r => buildArrayFromHandlerResult(message, r)[0])
+  } else if (response) {
+    let reply = new Reply(message, response)
+    return [reply]
+  } else {
+    return []
   }
 }
