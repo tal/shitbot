@@ -100,7 +100,7 @@ bot.onReaction(
   /.+/,
   all,
   (targetMsg, reaction) =>
-    `That's great <@${targetMsg.userId}> :${reaction.emoji}:`,
+    `That's great <@${targetMsg.userId}> ${reaction.emoji} :${reaction.emoji}:`,
 )
 
 function wrapWithTicks(str: string) {
@@ -145,6 +145,12 @@ bot.handle(
   (msg, urls) => {
     return wrapWithTicks(JSON.stringify(urls, null, 2))
   },
+)
+
+// Makes sure that it works in private channels
+bot.handle(
+  all.inChannel('prive'),
+  msg => 'sssshhhhhh ' + JSON.stringify(msg.channel),
 )
 
 bot.start()

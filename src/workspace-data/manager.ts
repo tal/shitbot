@@ -1,4 +1,11 @@
-import { WebClient, WebAPICallResult } from '@slack/web-api'
+import {
+  WebClient,
+  WebAPICallResult,
+  ConversationsListArguments,
+  CursorPaginationEnabled,
+  IMListArguments,
+  UsersListArguments,
+} from '@slack/web-api'
 import { DataStore } from './data-store'
 
 export interface TalkyPlace {
@@ -19,6 +26,7 @@ export interface Channel extends TalkyPlace {
   is_member: boolean
   is_mpim: boolean
   is_private: boolean
+  is_im: false
   name: string
   name_normalized: string
   num_members: number
@@ -62,7 +70,7 @@ export interface User {
   profile: { [k: string]: string }
 }
 
-interface ChannelList extends WebAPICallResult {
+interface ConversationList extends WebAPICallResult {
   channels: Channel[]
 }
 
@@ -74,32 +82,80 @@ interface IMList extends WebAPICallResult {
   ims: IM[]
 }
 
+function paginateFn<
+  T,
+  F extends WebAPICallResult = WebAPICallResult,
+  Props extends CursorPaginationEnabled = CursorPaginationEnabled
+>(
+  fetcher: (options?: Props) => Promise<WebAPICallResult>,
+  dataCollector: (reponse: F) => T[],
+) {
+  return async (props: Props) => {
+    let response = await fetcher(props)
+    if (!response.ok) {
+      throw response.error
+    }
+
+    let data = dataCollector(response as F)
+
+    while (
+      response.ok &&
+      response.response_metadata &&
+      response.response_metadata.next_cursor
+    ) {
+      let cursor = response.response_metadata.next_cursor
+
+      response = await fetcher({
+        ...props,
+        cursor,
+      })
+
+      if (!response.ok) {
+        throw response.error
+      }
+
+      data = data.concat(dataCollector(response as F))
+    }
+
+    return data
+  }
+}
+
 export class Manager {
-  private channelStore = new DataStore(() => {
-    return this.web.channels.list({
+  private channelStore = new DataStore(async () => {
+    const props: ConversationsListArguments = {
       exclude_archived: true,
-      exclude_members: true,
-    }) as Promise<ChannelList>
+      types: 'public_channel,private_channel',
+      limit: 999,
+    }
+
+    return paginateFn(
+      this.web.conversations.list,
+      (resp: ConversationList) => resp.channels,
+    )(props)
   })
 
   private imStore = new DataStore(() => {
-    return this.web.im.list() as Promise<IMList>
+    const props: IMListArguments = { limit: 999 }
+    return paginateFn(this.web.im.list, (resp: IMList) => resp.ims)(props)
   })
 
   private userStore = new DataStore(() => {
-    return this.web.users.list() as Promise<UserList>
+    const props: UsersListArguments = { limit: 999 }
+    return paginateFn(
+      this.web.users.list,
+      (resp: UserList) => resp.members,
+    )(props)
   })
 
   constructor(private readonly web: WebClient) {}
 
-  async channels() {
-    const data = await this.channelStore.data()
-    return data.channels
+  channels() {
+    return this.channelStore.data()
   }
 
-  async ims() {
-    const data = await this.imStore.data()
-    return data.ims
+  ims() {
+    return this.imStore.data()
   }
 
   async channel(id: string) {
@@ -120,9 +176,8 @@ export class Manager {
     return channels.find(channel => channel.id === id)
   }
 
-  async users() {
-    const data = await this.userStore.data()
-    return data.members
+  users() {
+    return this.userStore.data()
   }
 
   async user(id: string) {
@@ -137,19 +192,17 @@ export class Manager {
     return users.find(user => user.name === name)
   }
 
-  private get allStores() {
+  private get allStores(): DataStore<any>[] {
     return [this.channelStore, this.imStore, this.userStore]
   }
 
-  ensureAllTalky() {
+  ensureAllTalky(): Promise<void> {
     return Promise.all([this.channels(), this.ims()]).then(() => undefined)
   }
 
-  resetAll() {
-    return Promise.all(
-      this.allStores.map((store: { reset: () => Promise<any> }) =>
-        store.reset(),
-      ),
-    ).then(() => undefined)
+  resetAll(): Promise<void> {
+    return Promise.all(this.allStores.map(store => store.reset())).then(
+      () => undefined,
+    )
   }
 }
