@@ -10,20 +10,20 @@ interface MessagePayload {
   blocks?: KnownBlock[]
 }
 
-export type MessageConveratable =
+export type MessageConvertible =
   | string
   | MessageAttachment
   | MessageAttachment[]
   | MessagePayload
 
-function isMessagePayload(obj: MessageConveratable): obj is MessagePayload {
+function isMessagePayload(obj: MessageConvertible): obj is MessagePayload {
   return (
     typeof obj !== 'string' &&
     ('text' in obj || 'attachments' in obj || 'blocks' in obj)
   )
 }
 
-function payload(value: MessageConveratable): MessagePayload {
+function payload(value: MessageConvertible): MessagePayload {
   if (isMessagePayload(value)) {
     return value
   } else if (typeof value === 'string') {
@@ -47,7 +47,7 @@ export class Reply extends OutboundMessage {
 
   constructor(
     message: Message | Attachment,
-    text: MessageConveratable,
+    text: MessageConvertible,
     threadTS?: string,
   ) {
     if (message instanceof Message) {

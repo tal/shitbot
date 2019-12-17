@@ -1,7 +1,10 @@
 # Shitbot
+
 ## A simple bot for shitposting
+
 | [Quickstart](#quickstart) | [Matchers](#matcher) | [Handlers](#handler) | [Message](#message) | [Advanced](#advanced) |
-| --- | --- | --- | --- | --- |
+| ------------------------- | -------------------- | -------------------- | ------------------- | --------------------- |
+
 
 In reality it's a bot that just tries to make it really fast and easy to respond to messages
 that are sent.
@@ -13,8 +16,9 @@ contrived examples in [`src/_testbot.ts`](./src/_testbot.ts).
 
 First install:
 
-| `npm install shitbot` |  `yarn add shitbot` |
-| --- | --- |
+| `npm install shitbot` | `yarn add shitbot` |
+| --------------------- | ------------------ |
+
 
 The most basic responder probably looks like this
 
@@ -29,7 +33,7 @@ bot.handle(
 )
 ```
 
-Starting the bot connects it to the web and rtm slack connetions and gets everything going.
+Starting the bot connects it to the web and rtm slack connections and gets everything going.
 
 The first argument is the "matcher" and the second argument is the "handler".
 
@@ -37,15 +41,16 @@ The matcher filters the messages so you only respond to applicable messages, the
 dictates how to respond to the message.
 
 ### Matcher
+
 Responders have a matcher, that filters what messages it'll respond to. They are a builder
 pattern that you can add more filters.
 
 - `all` - matches all messages, must be the seed for all matchers
 - `startsWith('string')` - only matches messages that start with the supplied string, provides
   everything after the prefix to the handler as an argument
-- `contains('string')` - matches any message that has the supplied string anywhre in it
+- `contains('string')` - matches any message that has the supplied string anywhere in it
 - `matches(/^prefix: (.+)/i)` - matches to a regex, any capture groups are then passed along
-to the handler
+  to the handler
 - `messageIs('string')` - only matches if the whole message is only the supplied string (not counting
   mentions at beginning of string)
 - `directedAtBot` - only match if the user `@mentions` the bot or if they IM the bot
@@ -67,6 +72,7 @@ all.isIM.startsWith('foo')
 Matchers are defined in [`src/matcher.ts`](./src/matcher.ts).
 
 #### Logic Matchers
+
 There are some matchers for doing more complex logic if you want
 
 - `or(all.inChannel('random'), all.isIM)`
@@ -74,17 +80,20 @@ There are some matchers for doing more complex logic if you want
 - `not(all.isIM)`
 
 ### Handler
+
 The second part of responding is the handler, this is a function that is called iff the matcher
 succeeds.
 
 Handlers are just functions that take in a message and return a response, in their simplest form
 
 ```js
-(msg) => `echo ${msg.text}`
+msg => `echo ${msg.text}`
 ```
 
 #### Message
+
 The message supplies the following pieces of information
+
 - `msg.text` - the body of the message, if you `@shitbot` it will automatically remove that from the text
 - `msg.userName` - the user that sent the message
 - `msg.channelName` - the channel name that the message was posted in
@@ -93,69 +102,131 @@ The message supplies the following pieces of information
 - `msg.userId` - the user id of the sender
 
 ### Handler Result
+
 The handler can return a string, that's a quick alias for just replying in the same channel that the original
 message was sent.
 
 Otherwise you can have the handler respond using methods on the message itself.
 
-- `msg.reply('text')` - Same as plain text, replies in whatever cahnnel.
-- `msg.ephemoralResponse('message')` - Sends the message to the person who wrote the original message, only
-that author can see this.
+- `msg.reply('text')` - Same as plain text, replies in whatever channel.
+- `msg.reply({ blocks: attachmentBlocks })` - Creates a new message with [slack blocks](https://api.slack.com/block-kit).
+- `msg.reply({ text: 'message', blocks: attachmentBlocks })` - Send both
+- `msg.ephemeralResponse('message')` - Sends the message to the person who wrote the original message, only
+  that author can see this.
 - `msg.replyThread('message')` - replies but in a new thread on the existing message
 - `msg.emojiWordReaction('word')` - Adds emoji reaction that spells out the supplied word
 - `msg.emojiReaction('emoji1','emoji2'...)` - Adds any emoji reactions to the message that was sent
 
 ### Attachments & Blocks
+
 You can add richer content to your responses with Attachments (deprecated) and [Blocks](https://api.slack.com/block-kit).
 
-This is easy, for `reply`, `replyThread`, and `ephemoralResponse` you can just include them instead of the text:
+This is easy, for `reply`, `replyThread`, and `ephemeralResponse` you can just include them instead of the text:
 
 ```js
-bot.handle(
-  all.isIM,
-  msg => {
-    const blocks = [
-      	{
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": "You can add an image next to text in this block."
-          },
-          "accessory": {
-            "type": "image",
-            "image_url": "https://api.slack.com/img/blocks/bkb_template_images/plants.png",
-            "alt_text": "plants"
-          }
-        }
-    ]
+bot.handle(all.isIM, msg => {
+  const blocks = [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: 'You can add an image next to text in this block.',
+      },
+      accessory: {
+        type: 'image',
+        image_url:
+          'https://api.slack.com/img/blocks/bkb_template_images/plants.png',
+        alt_text: 'plants',
+      },
+    },
+  ]
 
-    return msg.reply({ blocks })
-  }
+  return msg.reply({ blocks })
+})
+```
+
+### Fallthrough
+
+If you want the bot to respond with if nothing was matched (eg to say that the bot didn't understand your command). You can do that with the following syntax. Otherwise it behaves just like any other handler.
+
+```js
+bot.fallthrough(
+  all.directedAtBot,
+  msg => "Sorry I don't know how to handle that",
 )
 ```
 
 ## Advanced
 
+### Advanced handlers
+
+Handlers can be async functions and so they can make network calls or similar from within the handler.
+
+````js
+bot.add(
+  all.directedAtBot.matches(/who is \<\@(\w+)\>/i),
+  async (msg, match) => {
+    const userId = match[1]
+    const user = await bot.data.user(userId)
+
+    return msg.reply(['```', JSON.stringify(user, null, 2), '```'].join(\n))
+  },
+)
+````
+
+Handlers can also return an array of responses if you want multiple actions to happen.
+
+```js
+bot.add(all.directedAtBot.contains('basic multiple'), async msg => [
+  'message one',
+  'message two',
+])
+```
+
+```js
+bot.add(all.directedAtBot.contains('advanced multiple'), async msg => [
+  msg.replyThread('I can reply to threads too!'),
+  msg.ephemeralResponse('only you can see this'),
+])
+```
+
+### Calling out to APIs manually
+
+The bot has getters for both the rtm and web api. These are just the native clients provided by node.
+
+`bot.web` is the [Web API](https://slack.dev/node-slack-sdk/web-api)
+
+`bot.rtm` is the [RTM API](https://slack.dev/node-slack-sdk/rtm-api)
+
+These are both used internally for the built in functionality. It's totally safe to call these within handlers to either get or send data.
+
 ### Getting channel and user information
+
 The bot helps provide a link between user/channel names and their IDs to make it easier to use. If you
 want to leverage that data store you can use the following methods:
 
 - `await bot.data.channel(channelId)` - returns a full channel object if exists
+- `await bot.data.channelNamed(channelName)` - returns a full channel object if exists
 - `await bot.data.user(userId)` - returns a full user object
+- `await bot.data.userNamed(userName)` - returns a full user object
 - `await bot.data.channels` - returns an array of all known channels
 - `await bot.data.users` - returns an array of all known channels
 
 The internal data store is cached for 5 minutes, so thats how long you'd need to wait if you create a new
 user or channel and want it to be reflected. Or you can reset the data using `await bot.data.resetAll()`.
 
+Check out [manager.ts](src/workspace-data/manager.ts) to see all of the helper methods for getting data from slack.
+
 ### Acting on others messages
+
 If someone posts something that you want to act on you can have the bot act on that fairly magically.
 If you send the bot a link to a message with content in that body, the content provided will act on the
 shared post rather than the IM itself. Share it like this:
 ![share message ui](./share-message-ui.png)
 
 ## TODO
+
 - [x] Allow sending attachments (1.0.0)
-- [ ] Add ability to send messages at any point, not just when inside a reply handler
+- [x] Add ability to send messages at any point, not just when inside a reply handler
 - [ ] Add scheduling to sending messages
 - [ ] Add web UI for adding rules

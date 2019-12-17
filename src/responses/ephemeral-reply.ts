@@ -2,7 +2,7 @@ import { Message } from '../message'
 import { OutboundMessage } from './outbound-message'
 import { Shitbot } from '../shitbot'
 
-export class EphemoralReply extends OutboundMessage {
+export class EphemeralReply extends OutboundMessage {
   toUser: string
   public text: string
 
@@ -15,7 +15,7 @@ export class EphemoralReply extends OutboundMessage {
     if (userID) {
       this.toUser = userID
     } else {
-      throw 'user on message is required to send ephemoral reply'
+      throw 'user on message is required to send ephemeral reply'
     }
 
     this.text = text

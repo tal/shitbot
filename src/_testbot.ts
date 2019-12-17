@@ -12,7 +12,7 @@ bot.handle(
 )
 
 bot.handle(
-  // Only if it hasnt been mentioned to by this user or in this channel for the last 4 hours
+  // Only if it hasn't been mentioned to by this user or in this channel for the last 4 hours
   all.contains('you guys').throttledByConversation.throttledByUser,
   msg =>
     'Not a big deal but consider using “y’all”, "everyone", or “folks” instead. It’s more inclusive than “guys”. 👍',
@@ -22,7 +22,7 @@ const teams: { [k: string]: string } = { ops: '@ops-team', security: '@sec' }
 for (let channel in teams) {
   const group = teams[channel]
   bot.handle(
-    // In the given chann and the message has either @channel or @here
+    // In the given channel and the message has either @channel or @here
     all.inChannel(channel).or(all.contains('@channel'), all.contains('@here')),
     msg =>
       // add a thread to the triggered message with this text
@@ -34,7 +34,7 @@ for (let channel in teams) {
 
 bot.handle(all.matches(/\d{1,2}\:\d{2}/), msg =>
   // Show this message only to the person who sent the message
-  msg.ephemporalResponse('That looks like a time'),
+  msg.ephemeralResponse('That looks like a time'),
 )
 
 bot.handle(
@@ -74,7 +74,7 @@ bot.handle(all.directedAtBot.startsWith('heyo'), msg => {
   })
 })
 
-// If there's an error an ephemoral message will be sent to the person who cuased it
+// If there's an error an ephemeral message will be sent to the person who caused it
 // to help debug
 bot.handle(all.directedAtBot.contains('bad emoji error'), msg =>
   msg.emojiReaction('+1111'),
@@ -132,7 +132,7 @@ bot.onReaction(
       as_user: true,
     })
 
-    return targetMsg.ephemporalResponse(
+    return targetMsg.ephemeralResponse(
       `Your message was deleted because it should be a thread instead:\n${wrapWithTicks(
         targetMsg.text,
       )}`,
@@ -162,6 +162,9 @@ bot.handle(all.directedAtBot.contains('match without response'), msg => {
   console.log('matched without result')
 })
 
-bot.fallthough(all.directedAtBot, msg => 'Sorry I dont know how to handle that')
+bot.fallthrough(
+  all.directedAtBot,
+  msg => "Sorry I don't know how to handle that",
+)
 
 bot.start()

@@ -1,7 +1,7 @@
 import { Message } from './message'
 import { Matcher } from './matcher'
 import { OutboundMessage } from './responses/outbound-message'
-import { EphemoralReply } from './responses/ephemoral-reply'
+import { EphemeralReply } from './responses/ephemeral-reply'
 import { Reply } from './responses/reply'
 import { Shitbot } from './shitbot'
 import { ReactionAdded } from './reaction-added'
@@ -57,7 +57,7 @@ function reactionMatcherMatches(matcher: ReactionMatcher, reaction: string) {
 
 export class HandlerSet {
   private handlers: { matcher: Matcher; handler: MessageHandler }[] = []
-  private fallthoughHandlers: {
+  private fallthroughHandlers: {
     matcher: Matcher
     handler: MessageHandler
   }[] = []
@@ -72,7 +72,7 @@ export class HandlerSet {
    * There's currently no way to remove one after adding.
    *
    * @param matcher Something that inherits from `Matcher` that indicates when the handler should run
-   * @param handler A function to handle when the matcher is triggred, can be an async function or return a promise.
+   * @param handler A function to handle when the matcher is triggered, can be an async function or return a promise.
    */
   add(matcher: Matcher, handler: MessageHandler) {
     this.handlers.push({
@@ -81,8 +81,8 @@ export class HandlerSet {
     })
   }
 
-  addFallthough(matcher: Matcher, handler: MessageHandler) {
-    this.fallthoughHandlers.push({
+  addFallthrough(matcher: Matcher, handler: MessageHandler) {
+    this.fallthroughHandlers.push({
       matcher,
       handler,
     })
@@ -111,7 +111,7 @@ export class HandlerSet {
         await this.responses({
           message,
           results,
-          handlers: this.fallthoughHandlers,
+          handlers: this.fallthroughHandlers,
         })
       ).responses
     }
@@ -176,7 +176,7 @@ export class HandlerSet {
       if (!matched) return
       wasMatched = true
 
-      return this.dealWithit(handler, message, [...externalResults, ...results])
+      return this.dealWithIt(handler, message, [...externalResults, ...results])
     })
 
     let responses: OutboundMessage[] = []
@@ -200,7 +200,7 @@ export class HandlerSet {
         try {
           await response.doIt(bot)
         } catch (error) {
-          new EphemoralReply(message, slackStringifyError(error)).doIt(bot)
+          new EphemeralReply(message, slackStringifyError(error)).doIt(bot)
         }
       }),
     )
@@ -215,7 +215,7 @@ export class HandlerSet {
    * @param message
    * @param results The results from the matcher if applicable
    */
-  private async dealWithit(
+  private async dealWithIt(
     handler: MessageHandler,
     message: Message,
     results: any[],

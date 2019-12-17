@@ -2,12 +2,13 @@ import { URL } from 'url'
 
 import { RTMMessageEvent, Attachment } from './types'
 import { User, Channel, IM } from './workspace-data/manager'
-import { Reply, MessageConveratable } from './responses/reply'
+import { Reply, MessageConvertible } from './responses/reply'
 import { EmojiWordReaction } from './responses/emoji-word-reaction'
 import { EmojisReaction } from './responses/emojis-reaction'
-import { EphemoralReply } from './responses/ephemoral-reply'
+import { EphemeralReply } from './responses/ephemeral-reply'
 import { Shitbot } from './shitbot'
 import { allMatches, allSlackURLs } from './utils'
+import { ReplyWithThread } from './responses/reply-with-thread'
 
 const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/i
 
@@ -45,7 +46,7 @@ interface MessageData {
 /**
  * A wrapper for the bare message object provided by the API. Provides
  * helpers to get channel and user names instead of just ids as well as other
- * helpufl methods.
+ * helpful methods.
  */
 export class Message {
   constructor(
@@ -88,7 +89,7 @@ export class Message {
   }
 
   /**
-   * Retruns a regex match for a mention that the line starts with
+   * Returns a regex match for a mention that the line starts with
    */
   private get mentionMatch() {
     if (!this.data.text) {
@@ -200,9 +201,16 @@ export class Message {
 
   /**
    * Send a simple text response to the sent message.
+   *
+   * If the second argument is provided as an array of messages the message will include
+   * thread replies to the new message.
    */
-  reply(text: MessageConveratable) {
-    return new Reply(this.sharedMessageOrSelf, text)
+  reply(text: MessageConvertible, threadMessages?: MessageConvertible[]) {
+    if (threadMessages) {
+      return new ReplyWithThread(this.sharedMessageOrSelf, text, threadMessages)
+    } else {
+      return new Reply(this.sharedMessageOrSelf, text)
+    }
   }
 
   /**
@@ -221,16 +229,16 @@ export class Message {
   }
 
   /**
-   * Sends a reply to the message as an ephemoral message (visible only to targeted user).
+   * Sends a reply to the message as an ephemeral message (visible only to targeted user).
    */
-  ephemporalResponse(text: string) {
-    return new EphemoralReply(this, text)
+  ephemeralResponse(text: string) {
+    return new EphemeralReply(this, text)
   }
 
   /**
    * Replies to the message given but in a thread instead of in the channel.
    */
-  replyThread(text: MessageConveratable) {
+  replyThread(text: MessageConvertible) {
     return new Reply(
       this.sharedMessageOrSelf,
       text,

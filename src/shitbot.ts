@@ -82,8 +82,8 @@ export class Shitbot {
     this.handlers.add(matcher, handler)
   }
 
-  fallthough(matcher: Matcher, handler: MessageHandler) {
-    this.handlers.addFallthough(matcher, handler)
+  fallthrough(matcher: Matcher, handler: MessageHandler) {
+    this.handlers.addFallthrough(matcher, handler)
   }
 
   onReaction(...args: Parameters<HandlerSet['addForReaction']>) {
