@@ -22,7 +22,7 @@ export class Shitbot {
   constructor(
     token?: string, // Is optional to allow passing of env var directly
     {
-      logLevel = LogLevel.ERROR,
+      logLevel = LogLevel.INFO,
       rtmLogLevel,
       webLogLevel,
     }: {
