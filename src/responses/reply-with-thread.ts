@@ -1,5 +1,5 @@
 import { OutboundMessage } from './outbound-message'
-import { MessageConveratable, Reply } from './reply'
+import { Reply, MessageConvertible } from './reply'
 import { Attachment } from '../types'
 import { Message } from '../message'
 import { Shitbot } from '../shitbot'
@@ -9,8 +9,8 @@ import { Shitbot } from '../shitbot'
  * that original message with other messages.
  */
 export class ReplyWithThread extends OutboundMessage {
-  private primary: MessageConveratable
-  private thread: MessageConveratable[]
+  private primary: MessageConvertible
+  private thread: MessageConvertible[]
   private message: Message | Attachment
 
   /**
@@ -19,12 +19,12 @@ export class ReplyWithThread extends OutboundMessage {
    *
    * @param message The seed message to reply to
    * @param primary The primary message tos end back
-   * @param thread  An aarray of messages to reply to the newly created message with
+   * @param thread  An array of messages to reply to the newly created message with
    */
   constructor(
     message: Message | Attachment,
-    primary: MessageConveratable,
-    thread: MessageConveratable[],
+    primary: MessageConvertible,
+    thread: MessageConvertible[],
   ) {
     if (message instanceof Message) {
       super(message.conversationId)

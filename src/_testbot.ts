@@ -3,7 +3,11 @@ import { LogLevel } from '@slack/logger'
 
 const token = process.env.SLACKBOT_TOKEN
 
-export const bot = new Shitbot(token, { logLevel: LogLevel.DEBUG })
+export const bot = new Shitbot(token, {
+  logLevel: LogLevel.DEBUG,
+  rtmLogLevel: LogLevel.INFO,
+  webLogLevel: LogLevel.DEBUG,
+})
 
 bot.handle(
   // Only if they do: `@bot hi` or `/msg @bot hi`
@@ -160,6 +164,12 @@ bot.handle(all.directedAtBot.startsWith('multiple'), msg => [
 
 bot.handle(all.directedAtBot.contains('match without response'), msg => {
   console.log('matched without result')
+})
+
+bot.handle(all.directedAtBot.contains('who am i'), async msg => {
+  const user = await bot.data.user(msg.userId)
+
+  return ['```', JSON.stringify(user, null, 2), '```'].join('\n')
 })
 
 bot.fallthrough(

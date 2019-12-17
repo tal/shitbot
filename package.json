@@ -41,6 +41,7 @@
     "typescript": "^3.5"
   },
   "dependencies": {
+    "@slack/logger": "^5.0.0",
     "@slack/rtm-api": "^5.0.0",
     "@slack/web-api": "^5.0.0"
   }

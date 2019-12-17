@@ -6,6 +6,7 @@ import {
   IMListArguments,
   UsersListArguments,
 } from '@slack/web-api'
+import { LogLevel } from '@slack/logger'
 import { DataStore } from './data-store'
 
 export interface TalkyPlace {
@@ -88,7 +89,7 @@ function paginateFn<
   Props extends CursorPaginationEnabled = CursorPaginationEnabled
 >(
   fetcher: (options?: Props) => Promise<WebAPICallResult>,
-  dataCollector: (reponse: F) => T[],
+  dataCollector: (response: F) => T[],
 ) {
   return async (props: Props) => {
     let response = await fetcher(props)
@@ -122,25 +123,31 @@ function paginateFn<
 }
 
 export class Manager {
-  private channelStore = new DataStore(async () => {
-    const props: ConversationsListArguments = {
-      exclude_archived: true,
-      types: 'public_channel,private_channel',
-      limit: 999,
-    }
+  public _logLevel: LogLevel = LogLevel.DEBUG
 
-    return paginateFn(
-      this.web.conversations.list,
-      (resp: ConversationList) => resp.channels,
-    )(props)
-  })
+  private channelStore = new DataStore(
+    'channelStore',
+    this._logLevel,
+    async () => {
+      const props: ConversationsListArguments = {
+        exclude_archived: true,
+        types: 'public_channel,private_channel',
+        limit: 999,
+      }
 
-  private imStore = new DataStore(() => {
+      return paginateFn(
+        this.web.conversations.list,
+        (resp: ConversationList) => resp.channels,
+      )(props)
+    },
+  )
+
+  private imStore = new DataStore('imStore', this._logLevel, () => {
     const props: IMListArguments = { limit: 999 }
     return paginateFn(this.web.im.list, (resp: IMList) => resp.ims)(props)
   })
 
-  private userStore = new DataStore(() => {
+  private userStore = new DataStore('userStore', this._logLevel, () => {
     const props: UsersListArguments = { limit: 999 }
     return paginateFn(
       this.web.users.list,
@@ -148,7 +155,21 @@ export class Manager {
     )(props)
   })
 
-  constructor(private readonly web: WebClient) {}
+  constructor(
+    private readonly web: WebClient,
+    options: { logLevel: LogLevel },
+  ) {
+    this.logLevel = options.logLevel
+  }
+
+  get logLevel() {
+    return this._logLevel
+  }
+
+  set logLevel(level: LogLevel) {
+    this._logLevel = level
+    this.allStores.forEach(s => (s.logLevel = level))
+  }
 
   channels() {
     return this.channelStore.data()
@@ -196,13 +217,18 @@ export class Manager {
     return [this.channelStore, this.imStore, this.userStore]
   }
 
-  ensureAllTalky(): Promise<void> {
-    return Promise.all([this.channels(), this.ims()]).then(() => undefined)
+  async ensureAllTalky() {
+    await Promise.all([this.channels(), this.ims()])
   }
 
-  resetAll(): Promise<void> {
-    return Promise.all(this.allStores.map(store => store.reset())).then(
-      () => undefined,
-    )
+  primeStores() {
+    const promise = this.ensureAllTalky()
+    promise.then(() => this.allStores.map(store => store.data()))
+
+    return promise
+  }
+
+  async resetAll() {
+    await Promise.all(this.allStores.map(store => store.reset()))
   }
 }
