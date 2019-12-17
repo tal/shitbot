@@ -57,6 +57,10 @@ function reactionMatcherMatches(matcher: ReactionMatcher, reaction: string) {
 
 export class HandlerSet {
   private handlers: { matcher: Matcher; handler: MessageHandler }[] = []
+  private fallthoughHandlers: {
+    matcher: Matcher
+    handler: MessageHandler
+  }[] = []
   private reactionHandlers: {
     reaction: ReactionMatcher
     matcher: Matcher
@@ -72,6 +76,13 @@ export class HandlerSet {
    */
   add(matcher: Matcher, handler: MessageHandler) {
     this.handlers.push({
+      matcher,
+      handler,
+    })
+  }
+
+  addFallthough(matcher: Matcher, handler: MessageHandler) {
+    this.fallthoughHandlers.push({
       matcher,
       handler,
     })
@@ -93,7 +104,17 @@ export class HandlerSet {
    * Get all the responses for a given message and send them to the bot
    */
   async handle(bot: Shitbot, message: Message, results: any[] = []) {
-    const responses = await this.responses({ message, results })
+    let { responses, wasMatched } = await this.responses({ message, results })
+
+    if (!wasMatched) {
+      responses = (
+        await this.responses({
+          message,
+          results,
+          handlers: this.fallthoughHandlers,
+        })
+      ).responses
+    }
 
     return this.sendResponses(bot, message, responses)
   }
@@ -124,7 +145,7 @@ export class HandlerSet {
           message,
           handlers: [matcher],
           results: [reaction],
-        }),
+        }).then(({ responses }) => responses),
       ),
     )
 
@@ -148,10 +169,12 @@ export class HandlerSet {
       handler: MessageHandler
     }[]
   }) {
+    let wasMatched = false
     let promises = handlers.map(({ matcher, handler }) => {
       const { matched, results } = matcher._matchMessage(message)
 
       if (!matched) return
+      wasMatched = true
 
       return this.dealWithit(handler, message, [...externalResults, ...results])
     })
@@ -164,7 +187,7 @@ export class HandlerSet {
       responses = responses.concat(val)
     }
 
-    return responses
+    return { responses, wasMatched }
   }
 
   async sendResponses(

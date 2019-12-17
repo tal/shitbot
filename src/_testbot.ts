@@ -158,4 +158,10 @@ bot.handle(all.directedAtBot.startsWith('multiple'), msg => [
   msg.reply('Second Message'),
 ])
 
+bot.handle(all.directedAtBot.contains('match without response'), msg => {
+  console.log('matched without result')
+})
+
+bot.fallthough(all.directedAtBot, msg => 'Sorry I dont know how to handle that')
+
 bot.start()
