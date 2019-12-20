@@ -195,15 +195,13 @@ export class HandlerSet {
     message: Message,
     responses: OutboundMessage[],
   ) {
-    await Promise.all(
-      responses.map(async response => {
-        try {
-          await response.doIt(bot)
-        } catch (error) {
-          new EphemeralReply(message, slackStringifyError(error)).doIt(bot)
-        }
-      }),
-    )
+    for (const response of responses) {
+      try {
+        await response.doIt(bot)
+      } catch (error) {
+        await new EphemeralReply(message, slackStringifyError(error)).doIt(bot)
+      }
+    }
 
     return responses
   }
