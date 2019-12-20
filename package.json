@@ -9,7 +9,7 @@
   "repository": "git@github.com:tal/shitbot.git",
   "scripts": {
     "test": "jest",
-    "build": "tsc",
+    "build": "tsc -b .",
     "start": "yarn run build && node dist/index.js"
   },
   "files": [

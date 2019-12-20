@@ -1,3 +1,20 @@
+import { WebAPICallResult } from '@slack/web-api'
+
+export type SlackTeam = {
+  id: string
+  name: string
+  /**
+   * Subdomain for the team
+   */
+  domain: string
+}
+export type SlackRTMUser = { id: string; name: string }
+
+export type RTMStartResponse = WebAPICallResult & {
+  team: SlackTeam
+  self: SlackRTMUser
+}
+
 type RTMEventType =
   | 'message'
   | 'hello'

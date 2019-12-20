@@ -6,7 +6,13 @@ import { Manager } from './workspace-data/manager'
 import { HandlerSet, MessageHandler } from './handler-set'
 import { EmojiLetterMap } from './emoji-letter-map'
 import { Message } from './message'
-import { RTMReactionAddedEvent, RTMMessageEvent } from './types'
+import {
+  RTMReactionAddedEvent,
+  RTMMessageEvent,
+  RTMStartResponse,
+  SlackTeam,
+  SlackRTMUser,
+} from './types'
 import { ReactionAdded } from './reaction-added'
 import { Matcher } from './matcher'
 
@@ -14,6 +20,8 @@ export class Shitbot {
   readonly rtm: RTMClient
   readonly web: WebClient
   readonly data: Manager
+  team?: SlackTeam
+  self?: SlackRTMUser
   private _emojiLetters?: EmojiLetterMap
   private readonly handlers: HandlerSet
 
@@ -41,12 +49,17 @@ export class Shitbot {
     this.handlers = new HandlerSet()
   }
 
-  async start(cb?: () => void) {
-    const { self, team } = await this.data
+  async start(cb?: (obj: { team: SlackTeam; bot: SlackRTMUser }) => void) {
+    const response = await this.data
       .primeStores()
-      .then(() => this.rtm.start() as any)
+      .then(() => this.rtm.start() as Promise<RTMStartResponse>)
 
-    if (cb) cb()
+    const { team, self } = response
+
+    if (cb) cb({ team, bot: self })
+
+    this.team = team
+    this.self = self
 
     this.logger.info(
       `📶 connected as ${self.name} to workspace ${team.name} (${team.domain}.slack.com)`,
