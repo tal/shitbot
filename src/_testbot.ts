@@ -172,6 +172,21 @@ bot.handle(all.directedAtBot.contains('who am i'), async msg => {
   return ['```', JSON.stringify(user, null, 2), '```'].join('\n')
 })
 
+bot.handle(all.directedAtBot.matches(/(\d+) times/i), (msg, match) => {
+  const [, numStr] = match
+  const num = parseInt(numStr, 10)
+
+  // const results: ReturnType<typeof msg.reply>[] = []
+  const results: string[] = []
+
+  for (let i = 0; i < num; i += 1) {
+    // results.push(msg.reply(`count: ${i + 1}`))
+    results.push(`count: ${i + 1}`)
+  }
+
+  return results
+})
+
 bot.fallthrough(
   all.directedAtBot,
   msg => "Sorry I don't know how to handle that",
