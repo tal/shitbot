@@ -1,5 +1,5 @@
-import { RTMClient } from '@slack/rtm-api'
-import { WebClient } from '@slack/web-api'
+import { RTMClient, RTMClientOptions } from '@slack/rtm-api'
+import { WebClient, WebClientOptions } from '@slack/web-api'
 import { LogLevel, ConsoleLogger, Logger } from '@slack/logger'
 
 import { Manager } from './workspace-data/manager'
@@ -15,6 +15,11 @@ import {
 } from './types'
 import { ReactionAdded } from './reaction-added'
 import { Matcher } from './matcher'
+
+type ShitbotOptions = RTMClientOptions & {
+  rtmLogLevel?: LogLevel
+  webLogLevel?: LogLevel
+}
 
 export class Shitbot {
   readonly rtm: RTMClient
@@ -33,18 +38,23 @@ export class Shitbot {
       logLevel = LogLevel.INFO,
       rtmLogLevel,
       webLogLevel,
-    }: {
-      logLevel?: LogLevel
-      rtmLogLevel?: LogLevel
-      webLogLevel?: LogLevel
-    } = {},
+      ...options
+    }: ShitbotOptions = {},
   ) {
     if (!token) throw 'Non-empty token required'
 
     this.logger.setName('shitbot')
     this.logger.setLevel(logLevel)
-    this.rtm = new RTMClient(token, { logLevel: rtmLogLevel ?? logLevel })
-    this.web = new WebClient(token, { logLevel: webLogLevel ?? logLevel })
+    this.rtm = new RTMClient(token, {
+      ...options,
+      logLevel: rtmLogLevel ?? logLevel,
+    })
+    this.web =
+      (this.rtm as any).webClient ?? // this is a ts private variable, access it if you can or fall back to making another one
+      new WebClient(token, {
+        ...(options as WebClientOptions),
+        logLevel: webLogLevel ?? logLevel,
+      })
     this.data = new Manager(this.web, { logLevel })
     this.handlers = new HandlerSet()
   }
