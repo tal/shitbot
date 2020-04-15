@@ -106,7 +106,7 @@ export class Message {
   get text() {
     let match = this.mentionMatch
     if (match) {
-      return match[2]
+      return match[2] ?? ''
     }
     return this.data.text
   }
