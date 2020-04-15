@@ -131,13 +131,15 @@ export class Matcher {
    * It appends the match to the handler's arguments
    * @param regex Regext to apply to text of message
    */
-  matches = (regex: RegExp) => this.append(msg => msg.text.match(regex))
+  matches = (...regexs: RegExp[]) =>
+    this.append(msg => regexs.find(regex => msg.text.match(regex)))
 
   /**
    * Compares if the message sent equals exactly the supplied one.
    * @param str
    */
-  messageIs = (str: string) => this.append(msg => msg.text === str)
+  messageIs = (...strs: string[]) =>
+    this.append(msg => strs.find(str => str === msg.text))
 
   // reactedWith = (...emojis: string[]) => this.append(msg => {})
 
