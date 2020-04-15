@@ -39,7 +39,7 @@ interface MessageData {
   ts: string
   user: string
   channel: string
-  text: string
+  text: string | undefined
   attachments?: Attachment[]
 }
 
@@ -108,7 +108,7 @@ export class Message {
     if (match) {
       return match[2] ?? ''
     }
-    return this.data.text
+    return this.data.text ?? ''
   }
 
   /**
