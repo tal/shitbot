@@ -10,7 +10,7 @@ import { Shitbot } from './shitbot'
 import { allMatches, allSlackURLs } from './utils'
 import { ReplyWithThread } from './responses/reply-with-thread'
 
-const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/i
+const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/is
 
 export interface URLTextRef {
   url: URL

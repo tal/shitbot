@@ -132,7 +132,15 @@ export class Matcher {
    * @param regex Regext to apply to text of message
    */
   matches = (...regexs: RegExp[]) =>
-    this.append(msg => regexs.find(regex => msg.text.match(regex)))
+    this.append(msg => {
+      for (let regex of regexs) {
+        const match = msg.text.match(regex)
+        if (match) {
+          return match
+        }
+      }
+      return false
+    })
 
   /**
    * Compares if the message sent equals exactly the supplied one.
