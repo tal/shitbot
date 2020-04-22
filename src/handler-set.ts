@@ -233,7 +233,7 @@ function buildArrayFromHandlerResult(
   } else if (response instanceof Array) {
     return response.map(r => buildArrayFromHandlerResult(message, r)[0])
   } else if (response) {
-    let reply = new Reply(message, response)
+    let reply = message.reply(response)
     return [reply]
   } else {
     return []
