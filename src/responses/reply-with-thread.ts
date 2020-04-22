@@ -27,7 +27,7 @@ export class ReplyWithThread extends OutboundMessage {
     thread: MessageConvertible[],
   ) {
     if (message instanceof Message) {
-      super(message.conversationId)
+      super(message.conversationId, message.threadTS)
     } else {
       super(message.channel_id)
     }

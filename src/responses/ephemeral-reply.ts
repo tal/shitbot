@@ -6,10 +6,10 @@ export class EphemeralReply extends OutboundMessage {
   toUser: string
   public text: string
 
-  constructor(message: Message, text: string) {
+  constructor(message: Message, text: string, threadTs?: string) {
     let userID: string | undefined
 
-    super(message.conversationId)
+    super(message.conversationId, threadTs)
     if (message.user) userID = message.user.id
 
     if (userID) {
@@ -26,6 +26,7 @@ export class EphemeralReply extends OutboundMessage {
       channel: this.conversationId,
       text: this.text,
       user: this.toUser,
+      thread_ts: this.threadTS,
       as_user: true,
     })
   }

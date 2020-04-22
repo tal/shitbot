@@ -517,5 +517,8 @@ export interface RTMMessageEvent extends RTMEvent {
   channel: string
   subtype: RTMMessageSubtype
   event_ts?: string
+  thread_ts?: string
   attachments?: Attachment[]
+  blocks?: Block[]
+  team: string
 }

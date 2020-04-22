@@ -55,7 +55,7 @@ export class ReactionAdded {
         }
 
         const firstMessage = (response as any).messages[0] as
-          | { type: 'message'; user: string; text: string; ts: string } // this may need to add in attachements
+          | any // TODO: get an appropriate type for this
           | undefined
 
         if (firstMessage) {

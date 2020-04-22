@@ -9,6 +9,7 @@ import { EphemeralReply } from './responses/ephemeral-reply'
 import { Shitbot } from './shitbot'
 import { allMatches, allSlackURLs } from './utils'
 import { ReplyWithThread } from './responses/reply-with-thread'
+import { Block } from '@slack/web-api'
 
 const mentionRegex = /^\<\@(\w+)\>:?\s*(.*)/is
 
@@ -40,7 +41,10 @@ interface MessageData {
   user: string
   channel: string
   text: string | undefined
+  thread_ts?: string
+  team: string
   attachments?: Attachment[]
+  blocks?: Block[]
 }
 
 /**
@@ -118,6 +122,10 @@ export class Message {
     return !!this.im
   }
 
+  get isInThread() {
+    return !!this.data.thread_ts
+  }
+
   private _urls: URLTextRef[] | undefined
 
   /**
@@ -193,6 +201,13 @@ export class Message {
   }
 
   /**
+   * If it's in a thread, return the thread it's apart of
+   */
+  get threadTS() {
+    return this.data.thread_ts
+  }
+
+  /**
    * Trigger a response that says the bot is typing a response.
    */
   typingResponse() {
@@ -209,7 +224,7 @@ export class Message {
     if (threadMessages) {
       return new ReplyWithThread(this.sharedMessageOrSelf, text, threadMessages)
     } else {
-      return new Reply(this.sharedMessageOrSelf, text)
+      return new Reply(this.sharedMessageOrSelf, text, this.threadTS)
     }
   }
 
@@ -232,7 +247,7 @@ export class Message {
    * Sends a reply to the message as an ephemeral message (visible only to targeted user).
    */
   ephemeralResponse(text: string) {
-    return new EphemeralReply(this, text)
+    return new EphemeralReply(this, text, this.threadTS)
   }
 
   /**
@@ -242,7 +257,7 @@ export class Message {
     return new Reply(
       this.sharedMessageOrSelf,
       text,
-      this.sharedMessageOrSelf.ts,
+      this.isInThread ? this.threadTS : this.sharedMessageOrSelf.ts,
     )
   }
 

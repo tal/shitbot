@@ -5,8 +5,8 @@ const token = process.env.SLACKBOT_TOKEN
 
 export const bot = new Shitbot(token, {
   logLevel: LogLevel.DEBUG,
-  rtmLogLevel: LogLevel.INFO,
-  webLogLevel: LogLevel.DEBUG,
+  // rtmLogLevel: LogLevel.INFO,
+  // webLogLevel: LogLevel.DEBUG,
 })
 
 bot.handle(
